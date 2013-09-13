@@ -319,7 +319,7 @@ build/solo_symmetric.cray.repro/MOM6: build/solo_symmetric.cray.repro/MOM_memory
 build/solo_symmetric.gnu.repro/MOM6: build/solo_symmetric.gnu.repro/MOM_memory.h
 build/solo_symmetric.%/MOM6: build/shared.%/libfms.a
 build/solo_symmetric.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
-build/solo_symmetric.%/MOM6: $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.%/libfms.a
+build/solo_symmetric.%/MOM6: $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -336,7 +336,7 @@ build/solo_symmetric.%/MOM6: $(foreach dir,config_src/dynamic config_src/solo_dr
 #build/MOM6_SIS.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h))
 build/MOM6_SIS.%/MOM6: build/shared.%/libfms.a
 build/MOM6_SIS.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../extras/MOM6_SIS/{*,*/*}/ ../../shared/"
-build/MOM6_SIS.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.%/libfms.a $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h))
+build/MOM6_SIS.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h))
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -369,6 +369,22 @@ build/SIS2.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver sr
 build/CM2G.%/MOM6: build/shared.%/libfms.a
 build/CM2G.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../extras/CM2G/{*,*/*}/ ../../shared/"
 build/CM2G.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a $(foreach dir,$(wildcard extras/CM2G/*),$(wildcard $(dir)/*.F90 $(dir)/*.h))
+	@echo; echo Building $@
+	@echo SRCPTH=$(SRCPTH)
+	@echo MAKEMODE=$(MAKEMODE)
+	@echo COMPILER=$(COMPILER)
+	@echo EXEC_MODE=$(EXEC_MODE)
+	mkdir -p $(dir $@)
+	(cd $(dir $@); rm -f path_names; ../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); ../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../shared.$(COMPILER).$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f MOM6)
+	(cd $(dir $@); source ../../build/env/$(COMPILER); make $(MAKEMODE) $(PMAKEOPTS))
+
+# Static global executable
+build/global.%/MOM6: build/shared.%/libfms.a
+build/global.%/MOM6: SRCPTH="./ ../../MOM6/examples/global/ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
+build/global.%/MOM6: $(foreach dir,examples/global config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
