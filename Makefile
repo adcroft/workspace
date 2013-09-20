@@ -1,17 +1,21 @@
-#EXPTS=$(wildcard MOM6/examples/[a-zA-Z][a-zA-UW-Z]*)
-ALE_EXPTS=resting/z \
+#EXPTS=$(wildcard MOM6/examples/*/[a-zA-Z][a-zA-UW-Z]*)
+ALE_EXPTS=$(foreach dir, \
+          resting/z \
           single_column_z sloshing/rho \
           adjustment2d/z adjustment2d/rho \
           seamount/z seamount/sigma \
           flow_downslope/z flow_downslope/sigma \
-          global_ALE/z
-SOLO_EXPTS=torus_advection_test lock_exchange external_gwave single_column \
-           sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
-           double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer
-SYMMETRIC_EXPTS=circle_obcs
-SIS_EXPTS=GOLD_SIS GOLD_SIS_icebergs
-SIS2_EXPTS=SIS2 SIS2_icebergs
-CPLD_EXPTS=CM2G63L AM2_MOM6i_1deg
+          global_ALE/z \
+          ,solo_ocean/$(dir))
+SOLO_EXPTS=$(foreach dir, \
+          torus_advection_test lock_exchange external_gwave single_column \
+          sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
+          double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer \
+          ,solo_ocean/$(dir))
+SYMMETRIC_EXPTS=solo_ocean/circle_obcs
+SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ocean_SIS/$(dir))
+SIS2_EXPTS=$(foreach dir,SIS2 SIS2_icebergs,ocean_SIS2/$(dir))
+CPLD_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
 EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(CPLD_EXPTS)
 EXPT_EXECS=solo solo_symmetric MOM6_SIS SIS2 CM2G # Executable/model configurations to build
 #For non-GFDL users: CVS=cvs -d /ncrc/home2/fms/cvs
@@ -27,7 +31,6 @@ DATASETS_ROOT=/lustre/fs/pdata/gfdl_O/datasets
 CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
 CPPDEFS="-Duse_libMPI -Duse_netCDF"
 CPPDEFS="-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS"
-CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`../../bin/git-get-fms-version $$<`"'
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`../../bin/git-version-string $$<`"'
 # SITE can be ncrc, hpcs or doe
 SITE=ncrc
@@ -288,7 +291,7 @@ runscript.sh: Makefile
 #build/solo.cray.%/MOM6: build/shared.cray.%/libfms.a
 build/solo.%/MOM6: build/shared.%/libfms.a
 build/solo.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
-build/solo.%/MOM6: $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.%/libfms.a
+build/solo.%/MOM6: $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -417,149 +420,149 @@ build/shared.%/Makefile: shared/* shared/*/* shared/*/*/* build/env/$(COMPILER)
 
 # Rules for configuring and running experiments ################################
 
-MOM6/examples/unit_tests/timestats.$(COMPILER): NPES=2
-MOM6/examples/unit_tests/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/unit_tests/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/unit_tests/$(fl))
+MOM6/examples/solo_ocean/unit_tests/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/unit_tests/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/unit_tests/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/unit_tests/$(fl))
 
-MOM6/examples/torus_advection_test/timestats.$(COMPILER): NPES=2
-MOM6/examples/torus_advection_test/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/torus_advection_test/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/torus_advection_test/$(fl))
+MOM6/examples/solo_ocean/torus_advection_test/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/torus_advection_test/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/torus_advection_test/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/torus_advection_test/$(fl))
 
-MOM6/examples/double_gyre/timestats.$(COMPILER): NPES=8
-MOM6/examples/double_gyre/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/double_gyre/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/double_gyre/$(fl))
+MOM6/examples/solo_ocean/double_gyre/timestats.$(COMPILER): NPES=8
+MOM6/examples/solo_ocean/double_gyre/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/double_gyre/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/double_gyre/$(fl))
 
-MOM6/examples/DOME/timestats.$(COMPILER): NPES=6
-MOM6/examples/DOME/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/DOME/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/DOME/$(fl))
+MOM6/examples/solo_ocean/DOME/timestats.$(COMPILER): NPES=6
+MOM6/examples/solo_ocean/DOME/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/DOME/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/DOME/$(fl))
 
-MOM6/examples/benchmark/timestats.$(COMPILER): NPES=72
-MOM6/examples/benchmark/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/benchmark/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/benchmark/$(fl))
+MOM6/examples/solo_ocean/benchmark/timestats.$(COMPILER): NPES=72
+MOM6/examples/solo_ocean/benchmark/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/benchmark/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/benchmark/$(fl))
 
-MOM6/examples/single_column/timestats.$(COMPILER): NPES=1
-MOM6/examples/single_column/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/single_column/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/single_column/$(fl))
+MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): NPES=1
+MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/single_column/$(fl))
 
-MOM6/examples/single_column_z/timestats.$(COMPILER): NPES=1
-MOM6/examples/single_column_z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/single_column_z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/single_column_z/$(fl))
+MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): NPES=1
+MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/single_column_z/$(fl))
 
-MOM6/examples/circle_obcs/timestats.$(COMPILER): NPES=2
-MOM6/examples/circle_obcs/timestats.$(COMPILER): build/solo_symmetric.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/circle_obcs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/circle_obcs/$(fl))
+MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): build/solo_symmetric.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/circle_obcs/$(fl))
 
-MOM6/examples/lock_exchange/timestats.$(COMPILER): NPES=2
-MOM6/examples/lock_exchange/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/lock_exchange/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/lock_exchange/$(fl))
+MOM6/examples/solo_ocean/lock_exchange/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/lock_exchange/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/lock_exchange/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/lock_exchange/$(fl))
 
-MOM6/examples/adjustment2d/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/adjustment2d/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/adjustment2d/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/adjustment2d/layer/$(fl))
-MOM6/examples/adjustment2d/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/adjustment2d/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/adjustment2d/z/$(fl))
-MOM6/examples/adjustment2d/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/adjustment2d/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/adjustment2d/rho/$(fl))
+MOM6/examples/solo_ocean/adjustment2d/%/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/adjustment2d/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/adjustment2d/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/adjustment2d/layer/$(fl))
+MOM6/examples/solo_ocean/adjustment2d/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/adjustment2d/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/adjustment2d/z/$(fl))
+MOM6/examples/solo_ocean/adjustment2d/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/adjustment2d/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/adjustment2d/rho/$(fl))
 
-MOM6/examples/resting/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/resting/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/resting/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/resting/layer/$(fl))
-MOM6/examples/resting/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/resting/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/resting/z/$(fl))
+MOM6/examples/solo_ocean/resting/%/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/resting/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/resting/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/resting/layer/$(fl))
+MOM6/examples/solo_ocean/resting/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/resting/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/resting/z/$(fl))
 
-MOM6/examples/sloshing/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/sloshing/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/sloshing/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/sloshing/layer/$(fl))
-MOM6/examples/sloshing/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/sloshing/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/sloshing/rho/$(fl))
+MOM6/examples/solo_ocean/sloshing/%/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/sloshing/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/sloshing/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/sloshing/layer/$(fl))
+MOM6/examples/solo_ocean/sloshing/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/sloshing/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/sloshing/rho/$(fl))
 
-MOM6/examples/flow_downslope/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/flow_downslope/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/flow_downslope/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/flow_downslope/layer/$(fl))
-MOM6/examples/flow_downslope/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/flow_downslope/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/flow_downslope/z/$(fl))
-MOM6/examples/flow_downslope/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/flow_downslope/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/flow_downslope/rho/$(fl))
-MOM6/examples/flow_downslope/sigma/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/flow_downslope/sigma/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/flow_downslope/sigma/$(fl))
-MOM6/examples/flow_downslope/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/%/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/flow_downslope/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/layer/$(fl))
+MOM6/examples/solo_ocean/flow_downslope/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/z/$(fl))
+MOM6/examples/solo_ocean/flow_downslope/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/rho/$(fl))
+MOM6/examples/solo_ocean/flow_downslope/sigma/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/sigma/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/sigma/$(fl))
+MOM6/examples/solo_ocean/flow_downslope/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
 
-MOM6/examples/seamount/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/seamount/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/seamount/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/seamount/layer/$(fl))
-MOM6/examples/seamount/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/seamount/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/seamount/z/$(fl))
-MOM6/examples/seamount/sigma/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/seamount/sigma/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/seamount/sigma/$(fl))
+MOM6/examples/solo_ocean/seamount/%/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/seamount/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/seamount/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/seamount/layer/$(fl))
+MOM6/examples/solo_ocean/seamount/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/seamount/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/seamount/z/$(fl))
+MOM6/examples/solo_ocean/seamount/sigma/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/seamount/sigma/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/seamount/sigma/$(fl))
 
-MOM6/examples/external_gwave/timestats.$(COMPILER): NPES=2
-MOM6/examples/external_gwave/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/external_gwave/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/external_gwave/$(fl))
+MOM6/examples/solo_ocean/external_gwave/timestats.$(COMPILER): NPES=2
+MOM6/examples/solo_ocean/external_gwave/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/external_gwave/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/external_gwave/$(fl))
 
-MOM6/examples/global/timestats.$(COMPILER): NPES=64
-MOM6/examples/global/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/global/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/global/$(fl))
+MOM6/examples/solo_ocean/global/timestats.$(COMPILER): NPES=64
+MOM6/examples/solo_ocean/global/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/global/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/global/$(fl))
 
-MOM6/examples/global_ALE/layer/timestats.$(COMPILER): NPES=64
-MOM6/examples/global_ALE/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/global_ALE/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/global_ALE/layer/$(fl))
+MOM6/examples/solo_ocean/global_ALE/layer/timestats.$(COMPILER): NPES=64
+MOM6/examples/solo_ocean/global_ALE/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/global_ALE/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/global_ALE/layer/$(fl))
 
-MOM6/examples/global_ALE/z/timestats.$(COMPILER): NPES=64
-MOM6/examples/global_ALE/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/global_ALE/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/global_ALE/z/$(fl))
+MOM6/examples/solo_ocean/global_ALE/z/timestats.$(COMPILER): NPES=64
+MOM6/examples/solo_ocean/global_ALE/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/global_ALE/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/global_ALE/z/$(fl))
 
-MOM6/examples/nonBous_global/timestats.$(COMPILER): NPES=64
-MOM6/examples/nonBous_global/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/nonBous_global/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/nonBous_global/$(fl))
+MOM6/examples/solo_ocean/nonBous_global/timestats.$(COMPILER): NPES=64
+MOM6/examples/solo_ocean/nonBous_global/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/nonBous_global/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/nonBous_global/$(fl))
 
-MOM6/examples/Phillips_2layer/timestats.$(COMPILER): NPES=64
-MOM6/examples/Phillips_2layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/Phillips_2layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/Phillips_2layer/$(fl))
+MOM6/examples/solo_ocean/Phillips_2layer/timestats.$(COMPILER): NPES=64
+MOM6/examples/solo_ocean/Phillips_2layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/Phillips_2layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/Phillips_2layer/$(fl))
 
-MOM6/examples/MESO_025_23L/timestats.$(COMPILER): NPES=288
-MOM6/examples/MESO_025_23L/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/MESO_025_23L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/MESO_025_23L/$(fl))
+MOM6/examples/solo_ocean/MESO_025_23L/timestats.$(COMPILER): NPES=288
+MOM6/examples/solo_ocean/MESO_025_23L/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/MESO_025_23L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/MESO_025_23L/$(fl))
 
-#MOM6/examples/MESO_025_63L/timestats.$(COMPILER): NPES=96
-MOM6/examples/MESO_025_63L/timestats.$(COMPILER): NPES=288
-MOM6/examples/MESO_025_63L/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/MESO_025_63L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/MESO_025_63L/$(fl))
+#MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): NPES=96
+MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): NPES=288
+MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/MESO_025_63L/$(fl))
 
-MOM6/examples/GOLD_SIS/timestats.$(COMPILER): NPES=60
-MOM6/examples/GOLD_SIS/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/GOLD_SIS/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/GOLD_SIS/$(fl))
+MOM6/examples/ocean_SIS/GOLD_SIS/timestats.$(COMPILER): NPES=60
+MOM6/examples/ocean_SIS/GOLD_SIS/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS/GOLD_SIS/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/GOLD_SIS/$(fl))
 
-MOM6/examples/GOLD_SIS_icebergs/timestats.$(COMPILER): NPES=60
-MOM6/examples/GOLD_SIS_icebergs/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/GOLD_SIS_icebergs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/GOLD_SIS_icebergs/$(fl))
+MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/timestats.$(COMPILER): NPES=60
+MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/$(fl))
 
-MOM6/examples/GOLD_SIS_025/timestats.$(COMPILER): NPES=1024
-MOM6/examples/GOLD_SIS_025/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/GOLD_SIS_025/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/GOLD_SIS_025/$(fl))
+MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(COMPILER): NPES=1024
+MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/GOLD_SIS_025/$(fl))
 
-MOM6/examples/SIS2/timestats.$(COMPILER): NPES=60
-MOM6/examples/SIS2/timestats.$(COMPILER): build/SIS2.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/SIS2/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/SIS2/$(fl))
+MOM6/examples/ocean_SIS2/SIS2/timestats.$(COMPILER): NPES=60
+MOM6/examples/ocean_SIS2/SIS2/timestats.$(COMPILER): build/SIS2.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS2/SIS2/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS2/SIS2/$(fl))
 
-MOM6/examples/SIS2_icebergs/timestats.$(COMPILER): NPES=60
-MOM6/examples/SIS2_icebergs/timestats.$(COMPILER): build/SIS2.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/SIS2_icebergs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/SIS2_icebergs/$(fl))
+MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(COMPILER): NPES=60
+MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(COMPILER): build/SIS2.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS2/SIS2_icebergs/$(fl))
 
-MOM6/examples/CM2.2/timestats.$(COMPILER): NPES=90
-MOM6/examples/CM2.2/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/CM2.2/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/CM2.2/$(fl))
+MOM6/examples/coupled_AM2_SIS/CM2.2/timestats.$(COMPILER): NPES=90
+MOM6/examples/coupled_AM2_SIS/CM2.2/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/coupled_AM2_SIS/CM2.2/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2.2/$(fl))
 
-MOM6/examples/CM2G63L/timestats.$(COMPILER): NPES=90
-MOM6/examples/CM2G63L/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/CM2G63L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/CM2G63L/$(fl))
+MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(COMPILER): NPES=90
+MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2G63L/$(fl))
 
-MOM6/examples/AM2_MOM6i_1deg/timestats.$(COMPILER): NPES=90
-MOM6/examples/AM2_MOM6i_1deg/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/AM2_MOM6i_1deg/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/AM2_MOM6i_1deg/$(fl))
+MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(COMPILER): NPES=90
+MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/$(fl))
 
-MOM6/examples/CM2Gfixed/timestats.$(COMPILER): NPES=120
-MOM6/examples/CM2Gfixed/timestats.$(COMPILER): build/CM2G/MOM6 MOM6/examples/AM2_MOM6i_1deg/MOM_input MOM6/examples/CM2Gfixed/input.nml
-MOM6/examples/CM2Gfixed/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/CM2Gfixed/$(fl))
+MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(COMPILER): NPES=120
+MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(COMPILER): build/CM2G/MOM6 MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/MOM_input MOM6/examples/coupled_AM2_SIS/CM2Gfixed/input.nml
+MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2Gfixed/$(fl))
 	@echo; echo Running $(dir $@)
 	dmget /archive/gold/datasets/CM2G/perth/INPUT/*
 	(cd $(dir $@); mkdir -p INPUT; cd INPUT; $(CP) /archive/gold/datasets/CM2G/perth/INPUT/* .)
@@ -585,26 +588,26 @@ MOM6/examples/CM2Gfixed/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input 
 ## cd $(dir $@); rm -f timestats; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out
 
 # Rules to do some performance tests using benchmark
-benchmark: $(foreach n,48 96 144 192 216 240 288 384 480 576,MOM6/examples/benchmark/c1ms.$(COMPILER).360x180x22-n$(n).rank)
-benchmark: $(foreach n,24 48 72 96 144 192 216 240 288 384 480 576,MOM6/examples/benchmark/c1ms.$(COMPILER).360x180x22-n$(n).norank)
-MOM6/examples/benchmark/%.norank MOM6/examples/benchmark/%.rank: SHRTHOST=$(word 1,$(subst -batch, ,$(HOST)))
-MOM6/examples/benchmark/%.norank MOM6/examples/benchmark/%.rank: PARTS=$(shell echo $(*F) | sed 's/\([a-zA-Z0-9]*\)\.\([a-zA-Z0-9]*\)\.\([0-9]*x[0-9]*x[0-9]*\)\(.*\)/\1 \2 \3 \4/')
-MOM6/examples/benchmark/%.norank MOM6/examples/benchmark/%.rank: COMPILER=$(word 2,$(PARTS))
-MOM6/examples/benchmark/%.norank MOM6/examples/benchmark/%.rank: APARGS=$(shell echo $(word 4,$(PARTS)) | sed 's/-/ -/g' | sed 's/\(-[a-zA-Z]\)\([0-9][0-9]*\)/\1 \2/g')
-MOM6/examples/benchmark/%.norank: build/solo.$(COMPILER).prod/MOM6
+benchmark: $(foreach n,48 96 144 192 216 240 288 384 480 576,MOM6/examples/solo_ocean/benchmark/c1ms.$(COMPILER).360x180x22-n$(n).rank)
+benchmark: $(foreach n,24 48 72 96 144 192 216 240 288 384 480 576,MOM6/examples/solo_ocean/benchmark/c1ms.$(COMPILER).360x180x22-n$(n).norank)
+MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: SHRTHOST=$(word 1,$(subst -batch, ,$(HOST)))
+MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: PARTS=$(shell echo $(*F) | sed 's/\([a-zA-Z0-9]*\)\.\([a-zA-Z0-9]*\)\.\([0-9]*x[0-9]*x[0-9]*\)\(.*\)/\1 \2 \3 \4/')
+MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: COMPILER=$(word 2,$(PARTS))
+MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: APARGS=$(shell echo $(word 4,$(PARTS)) | sed 's/-/ -/g' | sed 's/\(-[a-zA-Z]\)\([0-9][0-9]*\)/\1 \2/g')
+MOM6/examples/solo_ocean/benchmark/%.norank: build/solo.$(COMPILER).prod/MOM6
 	make build/solo.$(COMPILER).prod/MOM6
 	-cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
 	(cd $(@D); setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; aprun $(APARGS) ../../../build/solo.$(COMPILER).prod/MOM6 >& std.out)
-	mv MOM6/examples/benchmark/std.out $@
-MOM6/examples/benchmark/%.rank: NORANK=$(subst .rank,.norank,$@)
-MOM6/examples/benchmark/%.rank: PES=$(shell echo $(word 4,$(PARTS))| sed 's/.*-n\([0-9][0-9]*\).*/\1/')
-MOM6/examples/benchmark/%.rank: MOM6/examples/benchmark/%.norank
+	mv MOM6/examples/solo_ocean/benchmark/std.out $@
+MOM6/examples/solo_ocean/benchmark/%.rank: NORANK=$(subst .rank,.norank,$@)
+MOM6/examples/solo_ocean/benchmark/%.rank: PES=$(shell echo $(word 4,$(PARTS))| sed 's/.*-n\([0-9][0-9]*\).*/\1/')
+MOM6/examples/solo_ocean/benchmark/%.rank: MOM6/examples/solo_ocean/benchmark/%.norank
 	make $(NORANK)
 	@echo cp *3*=`awk /X-AX/,/Y-AX/ $(NORANK) | grep -v "Y-AX" | sed 's/.*=//' | wc -w`x`fgrep "Y-AX" $(NORANK) | sed 's/.*=//' | wc -w`=$(PES) $(@D)/MPICH_RANK_ORDER
 	@cp *3*=`awk /X-AX/,/Y-AX/ $(NORANK) | grep -v "Y-AX" | sed 's/.*=//' | wc -w`x`fgrep "Y-AX" $(NORANK) | sed 's/.*=//' | wc -w`=$(PES) $(@D)/MPICH_RANK_ORDER
 	-cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
 	(cd $(@D); setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; setenv MPICH_RANK_REORDER_METHOD 3; aprun $(APARGS) ../../../build/solo.$(COMPILER).prod/MOM6 >& std.out)
 	rm $(@D)/MPICH_RANK_ORDER
-	mv MOM6/examples/benchmark/std.out $@
+	mv MOM6/examples/solo_ocean/benchmark/std.out $@
 
 #@cp *3*=`fgrep "X-AX" $(NORANK) | sed 's/.*=//' | wc -w`x`fgrep "Y-AX" $(NORANK) | sed 's/.*=//' | wc -w`=$(PES) $(@D)/MPICH_RANK_ORDER
