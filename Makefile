@@ -17,7 +17,7 @@ SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ocean_SIS/$(dir))
 SIS2_EXPTS=$(foreach dir,SIS2 SIS2_icebergs,ocean_SIS2/$(dir))
 CPLD_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
 EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(CPLD_EXPTS)
-EXPT_EXECS=solo solo_symmetric MOM6_SIS SIS2 CM2G # Executable/model configurations to build
+EXPT_EXECS=solo_ocean solo_ocean_symmetric ocean_SIS ocean_SIS2 coupled_AM2_SIS # Executable/model configurations to build
 #For non-GFDL users: CVS=cvs -d /ncrc/home2/fms/cvs
 #For GFDL users: CVS=cvs -d :ext:cvs.princeton.rdhpcs.noaa.gov:/home/fms/cvs
 #For when certificates are down: CVS=cvs -d :ext:gfdl:/home/fms/cvs
@@ -31,7 +31,7 @@ DATASETS_ROOT=/lustre/fs/pdata/gfdl_O/datasets
 CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
 CPPDEFS="-Duse_libMPI -Duse_netCDF"
 CPPDEFS="-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS"
-CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`../../bin/git-version-string $$<`"'
+CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`../../../../bin/git-version-string $$<`"'
 # SITE can be ncrc, hpcs or doe
 SITE=ncrc
 MAKEMODE=NETCDF=4 OPENMP=1
@@ -47,9 +47,9 @@ ICE_tag=siena_201308
 BIN_tag=fre-commands-bronx-5
 
 # Default compiler configuration
-COMPILER=intel
+#COMPILER=intel
 EXEC_MODE=repro
-TEMPLATE=-t ../../site/$(SITE)/$(COMPILER).mk
+TEMPLATE=-t ../../../../site/$(SITE)/$(COMPILER).mk
 NPES=2
 PMAKEOPTS=-l 12.0 -j 12
 PMAKEOPTS=-j
@@ -82,15 +82,15 @@ buildall: $(MODES)
 #repro: $(foreach exec,$(EXPT_EXECS),$(foreach comp,$(COMPILERS),build/$(exec).$(comp).repro/MOM6))
 #debug: $(foreach exec,$(EXPT_EXECS),$(foreach comp,$(COMPILERS),build/$(exec).$(comp).debug/MOM6))
 #prod: $(foreach exec,$(EXPT_EXECS),$(foreach comp,$(COMPILERS),build/$(exec).$(comp).prod/MOM6))
-repro: $(foreach exec,$(EXPT_EXECS),build/$(exec).$(COMPILER).repro/MOM6)
+repro: $(foreach exec,$(EXPT_EXECS),build/$(COMPILER)/$(exec)/repro/MOM6)
 debug: build/shared.$(COMPILER).debug/libfms.a $(foreach exec,$(EXPT_EXECS),build/$(exec).$(COMPILER).debug/MOM6)
 prod: $(foreach exec,$(EXPT_EXECS),build/$(exec).$(COMPILER).prod/MOM6)
-ale: build/solo.$(COMPILER).$(EXEC_MODE)/MOM6 $(foreach dir,$(ALE_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
-solo: build/solo.$(COMPILER).$(EXEC_MODE)/MOM6 $(foreach dir,$(SOLO_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
-symmetric: build/solo_symmetric.$(COMPILER).$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
-sis: build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
-sis2: build/SIS2.$(COMPILER).$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS2_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
-coupled: build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6 $(foreach dir,$(CPLD_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+ale: build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6 $(foreach dir,$(ALE_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+solo: build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6 $(foreach dir,$(SOLO_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+symmetric: build/$(COMPILER)/solo_ocean_symmetric/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+sis: build/$(COMPILER)/ocean_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+sis2: build/$(COMPILER)/ocean_SIS2/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS2_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+coupled: build/$(COMPILER)/coupled_AM2_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(CPLD_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
 Ale:
 	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) ale;)
 Solo:
@@ -172,7 +172,7 @@ GOLD:
 	$(CVS) co -kk -r $(GOLD_tag) -P GOLD
 	(cd MOM6/src/ice_shelf; $(CVS) up -r null_ice_shelf_ogrp)
 MOM6:
-	git clone -n ssh://cvs.princeton.rdhpcs.noaa.gov/home/fms/git/ocean/MOM6.git
+	git clone --recursive ssh://cvs.princeton.rdhpcs.noaa.gov/home/fms/git/ocean/MOM6.git
 	(cd MOM6; git checkout $(MOM6_tag))
 shared:
 	$(CVS) co -kk -r $(FMS_tag) -P shared
@@ -205,28 +205,21 @@ MOM6/pkg/CVmix:
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory
-$(foreach cfg,$(MODES),build/%.pathscale.$(cfg)/MOM6): override COMPILER:=pathscale
-$(foreach cfg,$(MODES),build/%.intel.$(cfg)/MOM6): override COMPILER:=intel
-$(foreach cfg,$(MODES),build/%.pgi.$(cfg)/MOM6): override COMPILER:=pgi
-$(foreach cfg,$(MODES),build/%.cray.$(cfg)/MOM6): override COMPILER:=cray
-$(foreach cfg,$(MODES),build/%.gnu.$(cfg)/MOM6): override COMPILER:=gnu
-build/shared.pathscale.%/libfms.a: override COMPILER:=pathscale
-build/shared.intel.%/libfms.a: override COMPILER:=intel
-build/shared.pgi.%/libfms.a: override COMPILER:=pgi
-build/shared.cray.%/libfms.a: override COMPILER:=cray
-build/shared.gnu.%/libfms.a: override COMPILER:=gnu
+$(foreach mode,$(MODES),build/pathscale/%/$(cfg)/MOM6) build/pathscale/shared/%/libfms.a: override COMPILER:=pathscale
+$(foreach mode,$(MODES),build/intel/%/$(cfg)/MOM6) build/intel/shared/%/libfms.a: override COMPILER:=intel
+$(foreach mode,$(MODES),build/pgi/%/$(cfg)/MOM6) build/pgi/shared/%/libfms.a: override COMPILER:=pgi
+$(foreach mode,$(MODES),build/cray/%/$(cfg)/MOM6) build/cray/shared/%/libfms.a: override COMPILER:=cray
+$(foreach cfg,$(EXPT_EXECS),build/gnu/$(cfg)/%/MOM6) build/gnu/shared/%/libfms.a: override COMPILER:=gnu
 # Set REPRO and DEBUG variables based on the build directory
-build/%.prod/MOM6: EXEC_MODE=prod
-build/%.repro/MOM6: EXEC_MODE=repro
-build/%.debug/MOM6: EXEC_MODE=debug
-build/%.repro/libfms.a build/%.repro/MOM6: MAKEMODE+=REPRO=1
-build/%.debug/libfms.a build/%.debug/MOM6: MAKEMODE+=DEBUG=1
+%/prod/MOM6: EXEC_MODE=prod
+%/repro/MOM6: EXEC_MODE=repro
+%/debug/MOM6: EXEC_MODE=debug
+%/repro/libfms.a %/repro/MOM6: MAKEMODE+=REPRO=1
+%/debug/libfms.a %/debug/MOM6: MAKEMODE+=DEBUG=1
 
 # Create module scripts
-build/env: Makefile
-	@mkdir -p build/env
-#	@make build/env/pgi build/env/pathscale build/env/intel
-build/env/pgi: build/env
+build/pgi/env:
+	mkdir -p $(dir $@)
 	@echo Building $@
 	@echo module unload PrgEnv-pgi > $@
 	@echo module unload PrgEnv-pathscale >> $@
@@ -235,7 +228,8 @@ build/env/pgi: build/env
 	@echo module unload PrgEnv-cray >> $@
 	@echo module load PrgEnv-pgi >> $@
 	@echo module load netcdf/4.2.0 >> $@
-build/env/pathscale: build/env
+build/pathscale/env:
+	mkdir -p $(dir $@)
 	@echo Building $@
 	@echo module unload PrgEnv-pgi > $@
 	@echo module unload PrgEnv-pathscale >> $@
@@ -244,7 +238,8 @@ build/env/pathscale: build/env
 	@echo module unload PrgEnv-cray >> $@
 	@echo module load PrgEnv-pathscale >> $@
 	@echo module load netcdf/4.2.0 >> $@
-build/env/intel: build/env
+build/intel/env:
+	mkdir -p $(dir $@)
 	@echo Building $@
 	@echo module unload PrgEnv-pgi > $@
 	@echo module unload PrgEnv-pathscale >> $@
@@ -254,7 +249,8 @@ build/env/intel: build/env
 	@echo module load PrgEnv-intel/4.0.46 >> $@
 	@echo module switch intel intel/12.0.5.220 >> $@
 	@echo module load netcdf/4.2.0 >> $@
-build/env/cray: build/env
+build/cray/env:
+	mkdir -p $(dir $@)
 	@echo Building $@
 	@echo module unload PrgEnv-pgi > $@
 	@echo module unload PrgEnv-pathscale >> $@
@@ -263,7 +259,8 @@ build/env/cray: build/env
 	@echo module unload PrgEnv-cray >> $@
 	@echo module load PrgEnv-cray >> $@
 	@echo module load netcdf/4.2.0 >> $@
-build/env/gnu: build/env
+build/gnu/env:
+	mkdir -p $(dir $@)
 	@echo Building $@
 	@echo module unload PrgEnv-pgi > $@
 	@echo module unload PrgEnv-pathscale >> $@
@@ -272,117 +269,81 @@ build/env/gnu: build/env
 	@echo module unload PrgEnv-cray >> $@
 	@echo module load PrgEnv-gnu >> $@
 	@echo module load netcdf/4.2.0 >> $@
-runscript.sh: Makefile
-	@echo Building $@
-	@echo '#/bin/csh -ve' > $@
-	@echo 'cd $$PWD' >> $@
-	@echo 'if ($$?RUNARGS == "0") set RUNARGS=" "' >> $@
-	@echo 'make $$RUNARGS' >> $@
 
 # solo executable
-#build/solo.%/MOM6: $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a build/shared.%/libfms.a
-#build/solo_symmetric.pgi.%/MOM6: build/shared.pgi.%/libfms.a
-#build/solo_symmetric.gnu.%/MOM6: build/shared.gnu.%/libfms.a
-#build/solo_symmetric.intel.%/MOM6: build/shared.intel.%/libfms.a
-#build/solo_symmetric.cray.%/MOM6: build/shared.cray.%/libfms.a
-#build/solo.pgi.%/MOM6: build/shared.pgi.%/libfms.a
-#build/solo.gnu.%/MOM6: build/shared.gnu.%/libfms.a
-#build/solo.intel.%/MOM6: build/shared.intel.%/libfms.a
-#build/solo.cray.%/MOM6: build/shared.cray.%/libfms.a
-build/solo.%/MOM6: build/shared.%/libfms.a
-build/solo.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
-build/solo.%/MOM6: $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),build/%/solo_ocean/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../../../shared/"
+$(foreach mode,$(MODES),build/%/solo_ocean/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../bin/list_paths $(SRCPTH))
-	(cd $(dir $@); ../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
-	(cd $(dir $@); ln -sf ../shared.$(COMPILER).$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
-	(cd $(dir $@); source ../../build/env/$(COMPILER); make $(MAKEMODE) $(PMAKEOPTS))
-
-# Create a local MOM_memory.h for symmetric mode
-build/%/MOM_memory.h: MOM6/config_src/dynamic/MOM_memory.h
-	mkdir -p $(dir $@)
-	(cd $(dir $@); sed 's/#undef  SYMMETRIC_MEMORY/#define SYMMETRIC_MEMORY/' ../../MOM6/config_src/dynamic/MOM_memory.h > MOM_memory.h)
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
 # Symmetric executable
-build/solo_symmetric.pathscale.debug/MOM6: build/solo_symmetric.pathscale.debug/MOM_memory.h
-build/solo_symmetric.pgi.debug/MOM6: build/solo_symmetric.pgi.debug/MOM_memory.h
-build/solo_symmetric.intel.debug/MOM6: build/solo_symmetric.intel.debug/MOM_memory.h
-build/solo_symmetric.gnu.debug/MOM6: build/solo_symmetric.gnu.debug/MOM_memory.h
-build/solo_symmetric.cray.debug/MOM6: build/solo_symmetric.cray.debug/MOM_memory.h
-build/solo_symmetric.pathscale.repro/MOM6: build/solo_symmetric.pathscale.repro/MOM_memory.h
-build/solo_symmetric.pgi.repro/MOM6: build/solo_symmetric.pgi.repro/MOM_memory.h
-build/solo_symmetric.intel.repro/MOM6: build/solo_symmetric.intel.repro/MOM_memory.h
-build/solo_symmetric.cray.repro/MOM6: build/solo_symmetric.cray.repro/MOM_memory.h
-build/solo_symmetric.gnu.repro/MOM6: build/solo_symmetric.gnu.repro/MOM_memory.h
-build/solo_symmetric.%/MOM6: build/shared.%/libfms.a
-build/solo_symmetric.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
-build/solo_symmetric.%/MOM6: $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic_symmetric,config_src/solo_driver,src/{*,*/*}}/ ../../../../shared/"
+$(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): $(foreach dir,config_src/dynamic_symmetric config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../bin/list_paths $(SRCPTH))
-	(cd $(dir $@); ../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
-	(cd $(dir $@); ln -sf ../shared.$(COMPILER).$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
-	(cd $(dir $@); source ../../build/env/$(COMPILER); make $(MAKEMODE) $(PMAKEOPTS))
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
-# MOM6_SIS executable
-#build/MOM6_SIS.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h))
-build/MOM6_SIS.%/MOM6: build/shared.%/libfms.a
-build/MOM6_SIS.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../extras/MOM6_SIS/{*,*/*}/ ../../shared/"
-build/MOM6_SIS.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h))
+# SIS executable
+$(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/MOM6_SIS/{*,*/*}/ ../../../../shared/"
+$(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../bin/list_paths $(SRCPTH))
-	(cd $(dir $@); ../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
-	(cd $(dir $@); ln -sf ../shared.$(COMPILER).$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
-	(cd $(dir $@); source ../../build/env/$(COMPILER); make $(MAKEMODE) $(PMAKEOPTS))
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
 # SIS2 executable
-build/SIS2.%/MOM6: build/shared.%/libfms.a
-build/SIS2.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../extras/SIS2/*/ ../../shared/"
-build/SIS2.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a $(foreach dir,$(wildcard extras/SIS2/*),$(wildcard $(dir)/*.F90 $(dir)/*.h))
+$(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/SIS2/{*,*/*}/ ../../../../shared/"
+$(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/SIS2/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../bin/list_paths $(SRCPTH))
-	(cd $(dir $@); ../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
-	(cd $(dir $@); ln -sf ../shared.$(COMPILER).$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
-	(cd $(dir $@); source ../../build/env/$(COMPILER); make $(MAKEMODE) $(PMAKEOPTS))
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
-#build/CM2G.%/MOM6: MOM6/config_src/dynamic/* MOM6/config_src/coupled_driver/* MOM6/src/* MOM6/src/*/* MOM6/src/*/*/* extras/CM2G/*/*
-build/CM2G.%/MOM6: build/shared.%/libfms.a
-build/CM2G.%/MOM6: SRCPTH="./ ../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../extras/CM2G/{*,*/*}/ ../../shared/"
-build/CM2G.%/MOM6: $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a $(foreach dir,$(wildcard extras/CM2G/*),$(wildcard $(dir)/*.F90 $(dir)/*.h))
+# AM2 executable
+$(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/CM2G/{*,*/*}/ ../../../../shared/"
+$(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/CM2G/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../bin/list_paths $(SRCPTH))
-	(cd $(dir $@); ../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
-	(cd $(dir $@); ln -sf ../shared.$(COMPILER).$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
-	(cd $(dir $@); source ../../build/env/$(COMPILER); make $(MAKEMODE) $(PMAKEOPTS))
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
 # Static global executable
 build/global.%/MOM6: build/shared.%/libfms.a
@@ -402,162 +363,153 @@ build/global.%/MOM6: $(foreach dir,examples/global config_src/dynamic config_src
 
 # Choose the compiler based on the build directory (repeated from above rules
 # due to different libfms.a target)
-build/shared.%/libfms.a: build/shared.%/Makefile
+$(foreach mode,$(MODES),build/%/shared/$(mode)/libfms.a): $(foreach dir,shared/* shared/*/*,$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/env
 	@echo; echo Building $@
 	@mkdir -p $(dir $@)
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
-	(cd $(dir $@); rm -f libfms.a)
-	(cd $(dir $@); source ../../build/env/$(COMPILER); make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
-build/shared.%/Makefile: shared/* shared/*/* shared/*/*/* build/env/$(COMPILER)
-	@echo; echo Building $@
-	@mkdir -p $(dir $@)
-	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
-	(cd $(dir $@); rm path_names; ../../bin/list_paths ../../shared)
+	@echo EXEC_MODE=$(EXEC_MODE)
+	(cd $(dir $@); rm path_names; ../../../../bin/list_paths ../../../../shared)
 	(cd $(dir $@); mv path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
-	(cd $(dir $@); ../../bin/mkmf $(TEMPLATE) -p libfms.a -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p libfms.a -c $(CPPDEFS) path_names)
+	(cd $(dir $@); rm -f libfms.a)
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
 
 # Rules for configuring and running experiments ################################
 
 MOM6/examples/solo_ocean/unit_tests/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/unit_tests/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/unit_tests/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/unit_tests/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/unit_tests/$(fl))
 
 MOM6/examples/solo_ocean/torus_advection_test/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/torus_advection_test/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/torus_advection_test/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/torus_advection_test/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/torus_advection_test/$(fl))
 
 MOM6/examples/solo_ocean/double_gyre/timestats.$(COMPILER): NPES=8
-MOM6/examples/solo_ocean/double_gyre/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/double_gyre/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/double_gyre/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/double_gyre/$(fl))
 
 MOM6/examples/solo_ocean/DOME/timestats.$(COMPILER): NPES=6
-MOM6/examples/solo_ocean/DOME/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/DOME/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/DOME/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/DOME/$(fl))
 
 MOM6/examples/solo_ocean/benchmark/timestats.$(COMPILER): NPES=72
-MOM6/examples/solo_ocean/benchmark/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/benchmark/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/benchmark/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/benchmark/$(fl))
 
 MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): NPES=1
-MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/single_column/$(fl))
 
 MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): NPES=1
-MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/single_column_z/$(fl))
 
 MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): build/solo_symmetric.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean_symmetric/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/circle_obcs/$(fl))
 
 MOM6/examples/solo_ocean/lock_exchange/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/lock_exchange/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/lock_exchange/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/lock_exchange/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/lock_exchange/$(fl))
 
 MOM6/examples/solo_ocean/adjustment2d/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/adjustment2d/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/adjustment2d/layer/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/adjustment2d/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/adjustment2d/layer/$(fl))
-MOM6/examples/solo_ocean/adjustment2d/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/adjustment2d/z/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/adjustment2d/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/adjustment2d/z/$(fl))
-MOM6/examples/solo_ocean/adjustment2d/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/adjustment2d/rho/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/adjustment2d/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/adjustment2d/rho/$(fl))
 
 MOM6/examples/solo_ocean/resting/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/resting/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/resting/layer/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/resting/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/resting/layer/$(fl))
-MOM6/examples/solo_ocean/resting/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/resting/z/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/resting/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/resting/z/$(fl))
 
 MOM6/examples/solo_ocean/sloshing/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/sloshing/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/sloshing/layer/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/sloshing/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/sloshing/layer/$(fl))
-MOM6/examples/solo_ocean/sloshing/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/sloshing/rho/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/sloshing/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/sloshing/rho/$(fl))
 
 MOM6/examples/solo_ocean/flow_downslope/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/flow_downslope/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/layer/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/flow_downslope/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/layer/$(fl))
-MOM6/examples/solo_ocean/flow_downslope/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/z/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/flow_downslope/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/z/$(fl))
-MOM6/examples/solo_ocean/flow_downslope/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/rho/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/flow_downslope/rho/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/rho/$(fl))
-MOM6/examples/solo_ocean/flow_downslope/sigma/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/sigma/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/flow_downslope/sigma/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/sigma/$(fl))
-MOM6/examples/solo_ocean/flow_downslope/rho/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/flow_downslope/rho/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 
 MOM6/examples/solo_ocean/seamount/%/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/seamount/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/seamount/layer/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/seamount/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/seamount/layer/$(fl))
-MOM6/examples/solo_ocean/seamount/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/seamount/z/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/seamount/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/seamount/z/$(fl))
-MOM6/examples/solo_ocean/seamount/sigma/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/seamount/sigma/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/seamount/sigma/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/seamount/sigma/$(fl))
 
 MOM6/examples/solo_ocean/external_gwave/timestats.$(COMPILER): NPES=2
-MOM6/examples/solo_ocean/external_gwave/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/external_gwave/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/external_gwave/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/external_gwave/$(fl))
 
 MOM6/examples/solo_ocean/global/timestats.$(COMPILER): NPES=64
-MOM6/examples/solo_ocean/global/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/global/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/global/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/global/$(fl))
 
 MOM6/examples/solo_ocean/global_ALE/layer/timestats.$(COMPILER): NPES=64
-MOM6/examples/solo_ocean/global_ALE/layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/global_ALE/layer/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/global_ALE/layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/global_ALE/layer/$(fl))
 
 MOM6/examples/solo_ocean/global_ALE/z/timestats.$(COMPILER): NPES=64
-MOM6/examples/solo_ocean/global_ALE/z/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/global_ALE/z/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/global_ALE/z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/global_ALE/z/$(fl))
 
 MOM6/examples/solo_ocean/nonBous_global/timestats.$(COMPILER): NPES=64
-MOM6/examples/solo_ocean/nonBous_global/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/nonBous_global/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/nonBous_global/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/nonBous_global/$(fl))
 
 MOM6/examples/solo_ocean/Phillips_2layer/timestats.$(COMPILER): NPES=64
-MOM6/examples/solo_ocean/Phillips_2layer/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/Phillips_2layer/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/Phillips_2layer/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/Phillips_2layer/$(fl))
 
 MOM6/examples/solo_ocean/MESO_025_23L/timestats.$(COMPILER): NPES=288
-MOM6/examples/solo_ocean/MESO_025_23L/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/MESO_025_23L/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/MESO_025_23L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/MESO_025_23L/$(fl))
 
-#MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): NPES=96
 MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): NPES=288
-MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): build/solo.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 MOM6/examples/solo_ocean/MESO_025_63L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/MESO_025_63L/$(fl))
 
 MOM6/examples/ocean_SIS/GOLD_SIS/timestats.$(COMPILER): NPES=60
-MOM6/examples/ocean_SIS/GOLD_SIS/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS/GOLD_SIS/timestats.$(COMPILER): build/$(COMPILER)/ocean_SIS/$(EXEC_MODE)/MOM6
 MOM6/examples/ocean_SIS/GOLD_SIS/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/GOLD_SIS/$(fl))
 
 MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/timestats.$(COMPILER): NPES=60
-MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/timestats.$(COMPILER): build/$(COMPILER)/ocean_SIS/$(EXEC_MODE)/MOM6
 MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/$(fl))
 
 MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(COMPILER): NPES=1024
-MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(COMPILER): build/MOM6_SIS.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(COMPILER): build/$(COMPILER)/ocean_SIS/$(EXEC_MODE)/MOM6
 MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/GOLD_SIS_025/$(fl))
 
 MOM6/examples/ocean_SIS2/SIS2/timestats.$(COMPILER): NPES=60
-MOM6/examples/ocean_SIS2/SIS2/timestats.$(COMPILER): build/SIS2.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS2/SIS2/timestats.$(COMPILER): build/$(COMPILER)/ocean_SIS2/$(EXEC_MODE)/MOM6
 MOM6/examples/ocean_SIS2/SIS2/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS2/SIS2/$(fl))
 
 MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(COMPILER): NPES=60
-MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(COMPILER): build/SIS2.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(COMPILER): build/$(COMPILER)/ocean_SIS2/$(EXEC_MODE)/MOM6
 MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS2/SIS2_icebergs/$(fl))
 
-MOM6/examples/coupled_AM2_SIS/CM2.2/timestats.$(COMPILER): NPES=90
-MOM6/examples/coupled_AM2_SIS/CM2.2/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
-MOM6/examples/coupled_AM2_SIS/CM2.2/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2.2/$(fl))
-
 MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(COMPILER): NPES=90
-MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(COMPILER): build/$(COMPILER)/coupled_AM2_SIS/$(EXEC_MODE)/MOM6
 MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2G63L/$(fl))
 
 MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(COMPILER): NPES=90
-MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(COMPILER): build/CM2G.$(COMPILER).$(EXEC_MODE)/MOM6
+MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(COMPILER): build/$(COMPILER)/coupled_AM2_SIS/$(EXEC_MODE)/MOM6
 MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/$(fl))
 
 MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(COMPILER): NPES=120
@@ -594,8 +546,8 @@ MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%
 MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: PARTS=$(shell echo $(*F) | sed 's/\([a-zA-Z0-9]*\)\.\([a-zA-Z0-9]*\)\.\([0-9]*x[0-9]*x[0-9]*\)\(.*\)/\1 \2 \3 \4/')
 MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: COMPILER=$(word 2,$(PARTS))
 MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: APARGS=$(shell echo $(word 4,$(PARTS)) | sed 's/-/ -/g' | sed 's/\(-[a-zA-Z]\)\([0-9][0-9]*\)/\1 \2/g')
-MOM6/examples/solo_ocean/benchmark/%.norank: build/solo.$(COMPILER).prod/MOM6
-	make build/solo.$(COMPILER).prod/MOM6
+MOM6/examples/solo_ocean/benchmark/%.norank: build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
+	make build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
 	-cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
 	(cd $(@D); setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; aprun $(APARGS) ../../../build/solo.$(COMPILER).prod/MOM6 >& std.out)
 	mv MOM6/examples/solo_ocean/benchmark/std.out $@
