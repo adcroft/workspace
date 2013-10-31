@@ -399,11 +399,11 @@ MOM6/examples/solo_ocean/benchmark/timestats.$(COMPILER): $(foreach fl,input.nml
 
 MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): NPES=1
 MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
-MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/single_column/$(fl))
+MOM6/examples/solo_ocean/single_column/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override MOM_override2,MOM6/examples/solo_ocean/single_column/$(fl))
 
 MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): NPES=1
 MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
-MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/single_column_z/$(fl))
+MOM6/examples/solo_ocean/single_column_z/timestats.$(COMPILER): $(foreach fl,input.nml MOM_input MOM_override MOM_override2,MOM6/examples/solo_ocean/single_column_z/$(fl))
 
 MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): NPES=2
 MOM6/examples/solo_ocean/circle_obcs/timestats.$(COMPILER): build/$(COMPILER)/solo_ocean_symmetric/$(EXEC_MODE)/MOM6
