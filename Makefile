@@ -363,7 +363,7 @@ build/global.%/MOM6: $(foreach dir,examples/global config_src/dynamic config_src
 
 # Choose the compiler based on the build directory (repeated from above rules
 # due to different libfms.a target)
-$(foreach mode,$(MODES),build/%/shared/$(mode)/libfms.a): $(foreach dir,shared/* shared/*/*,$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/env
+$(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),build/$(cmp)/shared/$(mode)/libfms.a)): $(foreach dir,shared/* shared/*/*,$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/env bin/git-version-string
 	@echo; echo Building $@
 	@mkdir -p $(dir $@)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -539,6 +539,11 @@ MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(COMPILER): $(foreach fl,inpu
 ## cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out
 ## cd $(dir $@); rm -f timestats; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out
 
+# Special rule to get misc files
+bin/git-version-string:
+	$(CVS) co -kk -r git_tools_sdu fre-commands
+	mkdir -p bin; cp fre-commands/bin/git-version-string bin/
+	rm -rf CVS fre-commands
 # Rules to do some performance tests using benchmark
 benchmark: $(foreach n,48 96 144 192 216 240 288 384 480 576,MOM6/examples/solo_ocean/benchmark/c1ms.$(COMPILER).360x180x22-n$(n).rank)
 benchmark: $(foreach n,24 48 72 96 144 192 216 240 288 384 480 576,MOM6/examples/solo_ocean/benchmark/c1ms.$(COMPILER).360x180x22-n$(n).norank)
