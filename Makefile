@@ -13,10 +13,11 @@ SOLO_EXPTS=$(foreach dir, \
           sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
           double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer \
           ,solo_ocean/$(dir))
+#
 SYMMETRIC_EXPTS=solo_ocean/circle_obcs
 SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025,ocean_SIS/$(dir))
 #SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ocean_SIS/$(dir))
-SIS2_EXPTS=$(foreach dir,SIS2 SIS2_icebergs,ocean_SIS2/$(dir))
+SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs,ocean_SIS2/$(dir))
 CPLD_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
 EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(CPLD_EXPTS)
 EXPT_EXECS=solo_ocean solo_ocean_symmetric ocean_SIS ocean_SIS2 coupled_AM2_SIS # Executable/model configurations to build
@@ -98,12 +99,14 @@ Ale:
 Solo:
 	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) solo;)
 Sis:
-	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) sis sis2;)
+	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) sis;)
+Sis2:
+	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) sis2;)
 Coupled:
 	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) cooupled;)
 All:
 	make Ale Solo
-	make Sis
+	make Sis Sis2
 	$(foreach comp,$(COMPILERS),make $(comp);)
 intel:
 	make COMPILER=intel
@@ -287,7 +290,7 @@ $(foreach mode,$(MODES),build/%/solo_ocean/$(mode)/MOM6): $(foreach dir,config_s
 
 # Symmetric executable
 $(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic_symmetric,config_src/solo_driver,src/{*,*/*}}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): $(foreach dir,config_src/dynamic_symmetric config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): $(foreach dir,config_src/dynamic_symmetric config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -302,7 +305,7 @@ $(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): $(foreach di
 
 # SIS executable
 $(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/MOM6_SIS/{*,*/*}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -317,7 +320,7 @@ $(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): $(foreach dir,config_sr
 
 # SIS2 executable
 $(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/SIS2/{*,*/*}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/SIS2/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/SIS2/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -332,7 +335,7 @@ $(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): $(foreach dir,config_s
 
 # AM2 executable
 $(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/CM2G/{*,*/*}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/CM2G/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/$(COMPILER)/shared/$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/CM2G/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -348,7 +351,7 @@ $(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): $(foreach dir,con
 # Static global executable
 build/global.%/MOM6: build/shared.%/libfms.a
 build/global.%/MOM6: SRCPTH="./ ../../MOM6/examples/global/ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
-build/global.%/MOM6: $(foreach dir,examples/global config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/shared.$(COMPILER).$(EXEC_MODE)/libfms.a
+build/global.%/MOM6: $(foreach dir,examples/global config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
 	@echo SRCPTH=$(SRCPTH)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -377,7 +380,6 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),build/$(cmp)/shared/$(mode)/l
 
 # Rules to associated an executable to each experiment #########################
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/solo_ocean/$(EXEC_MODE)/MOM6
-$(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),MOM6/examples/$(dir)/timestats.gnu): override COMPILER:=gnu
 $(foreach dir,$(SYMMETRIC_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/solo_ocean_symmetric/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/ocean_SIS/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS2_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/ocean_SIS2/$(EXEC_MODE)/MOM6
