@@ -103,7 +103,7 @@ Sis:
 Sis2:
 	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) sis2;)
 Coupled:
-	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) cooupled;)
+	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) coupled;)
 All:
 	make Ale Solo
 	make Sis Sis2
