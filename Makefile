@@ -45,9 +45,9 @@ COMPILERS=gnu intel pgi
 
 GOLD_tag=GOLD_ogrp
 MOM6_tag=dev/master
-FMS_tag=siena_201308
-ICE_tag=siena_201308
-BIN_tag=fre-commands-bronx-5
+FMS_tag=tikal_prerelease
+ICE_tag=tikal_prerelease
+BIN_tag=fre-commands-bronx-6
 
 # Default compiler configuration
 #COMPILER=intel
