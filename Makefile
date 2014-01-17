@@ -13,6 +13,7 @@ SOLO_EXPTS=$(foreach dir, \
           sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
           double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer \
           ,solo_ocean/$(dir))
+#         double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer \
 #
 SYMMETRIC_EXPTS=solo_ocean/circle_obcs
 SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025,ocean_SIS/$(dir))
@@ -508,15 +509,19 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(c
 	(cd $(dir $@); rm -f timestats; (aprun -np $(NPES) ../../../$< > std.out) |& tee stderr.out)
 
 # Rule to run all executables
-#%/timestats.$(COMPILER):
+#%/timestats.gnu: override COMPILER:=gnu
+#%/timestats.intel: override COMPILER:=intel
+#%/timestats.pgi: override COMPILER:=pgi
 $(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
 	@echo; echo Running in $(dir $@) with $<
+	@echo COMPILER =  $(COMPILER)
 	@cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
 	@rm -f $(dir $@)Depth_list.nc
 	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv OMP_NUM_THREADS 1; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
 	@mv $(dir $@)std.out $(dir $@)std.$(COMPILER).out
 	@mv $(dir $@)timestats $@
-	@cd $(dir $@); git status -s timestats.$(COMPILER)
+	@cd $(dir $@); echo -n 'git status: '; git status -s timestats.$(COMPILER)
+	@cd $(dir $@); echo; git status .
 #	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
 ##(cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out)
 ## cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out
