@@ -1,10 +1,10 @@
 #EXPTS=$(wildcard MOM6/examples/*/[a-zA-Z][a-zA-UW-Z]*)
 ALE_EXPTS=$(foreach dir, \
           resting/z \
-          single_column_z sloshing/rho \
+          single_column_z sloshing/rho sloshing/z \
           adjustment2d/z adjustment2d/rho \
           seamount/z seamount/sigma \
-          flow_downslope/z flow_downslope/sigma \
+          flow_downslope/z flow_downslope/rho flow_downslope/sigma \
           global_ALE/z \
           ,solo_ocean/$(dir))
 SOLO_EXPTS=$(foreach dir, \
@@ -17,6 +17,7 @@ SOLO_EXPTS=$(foreach dir, \
 #
 SYMMETRIC_EXPTS=solo_ocean/circle_obcs
 SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025,ocean_SIS/$(dir))
+#SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs GOLD_SIS_025 MOM6z_SIS_025,ocean_SIS/$(dir))
 #SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ocean_SIS/$(dir))
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs,ocean_SIS2/$(dir))
 CPLD_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
@@ -46,8 +47,8 @@ COMPILERS=gnu intel pgi
 
 GOLD_tag=GOLD_ogrp
 MOM6_tag=dev/master
-FMS_tag=tikal_prerelease
-ICE_tag=tikal_prerelease
+FMS_tag=tikal
+ICE_tag=tikal
 BIN_tag=fre-commands-bronx-6
 
 # Default compiler configuration
@@ -436,6 +437,7 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/resting/z/timestats.$(cmp)):
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/sloshing/%/timestats.$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/sloshing/layer/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/sloshing/layer/$(fl))
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/sloshing/rho/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/sloshing/rho/$(fl))
+$(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/sloshing/z/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/sloshing/z/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/flow_downslope/%/timestats.$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/flow_downslope/layer/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/flow_downslope/layer/$(fl))
@@ -514,7 +516,6 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(c
 #%/timestats.pgi: override COMPILER:=pgi
 $(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
 	@echo; echo Running in $(dir $@) with $<
-	@echo COMPILER =  $(COMPILER)
 	@cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
 	@rm -f $(dir $@)Depth_list.nc
 	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv OMP_NUM_THREADS 1; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
