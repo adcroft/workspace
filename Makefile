@@ -183,6 +183,10 @@ MOM6:
 	(cd MOM6; git checkout $(MOM6_tag))
 shared:
 	$(CVS) co -kk -r $(FMS_tag) -P shared
+	cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp.F90
+	cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp_bilinear.F90
+	cvs co -r siena_groupupdate_z1l shared/mpp/include/mpp_group_update.h
+	cvs up -r tikal_groupupdate_z1l shared/mpp/mpp_domains.F90 shared/mpp/test_mpp_domains.F90 shared/mpp/include/mpp_domains_misc.inc shared/mpp/include/mpp_domains_util.inc
 	rm -rf shared/oda_tools
 extras/MOM6_SIS:
 	mkdir -p $@
