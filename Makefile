@@ -49,7 +49,7 @@ GOLD_tag=GOLD_ogrp
 MOM6_tag=dev/master
 FMS_tag=tikal
 ICE_tag=tikal
-BIN_tag=fre-commands-bronx-6
+BIN_tag=fre-commands-bronx-7
 
 # Default compiler configuration
 #COMPILER=intel
@@ -174,35 +174,39 @@ backup: Clean
 	tar zcvf ~/MOM6_backup.tgz MOM6
 
 # This section defines how to checkout and layout the source code
-checkout: MOM6 shared extras/MOM6_SIS extras/SIS2 extras/CM2G site bin builddir
-GOLD:
-	$(CVS) co -kk -r $(GOLD_tag) -P GOLD
-	(cd MOM6/src/ice_shelf; $(CVS) up -r null_ice_shelf_ogrp)
+checkout: MOM6 shared extras/coupler extras/ice_param extras/SIS extras/SIS2 extras/LM2 extras/LM3 extras/AM2 site bin builddir
 MOM6:
-	git clone --recursive ssh://cvs.princeton.rdhpcs.noaa.gov/home/fms/git/ocean/MOM6.git
-	(cd MOM6; git checkout $(MOM6_tag))
+	git clone --recursive git@github.com:CommerceGov/NOAA-GFDL-MOM6.git MOM6
 shared:
 	$(CVS) co -kk -r $(FMS_tag) -P shared
 	cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp.F90
 	cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp_bilinear.F90
 	cvs co -r siena_groupupdate_z1l shared/mpp/include/mpp_group_update.h
 	cvs up -r tikal_groupupdate_z1l shared/mpp/mpp_domains.F90 shared/mpp/test_mpp_domains.F90 shared/mpp/include/mpp_domains_misc.inc shared/mpp/include/mpp_domains_util.inc
-	rm -rf shared/oda_tools
-extras/MOM6_SIS:
+extras:
 	mkdir -p $@
-	(cd $@; \
-$(CVS) co -kk -r $(FMS_tag) -P atmos_null atmos_param/diag_integral atmos_param/monin_obukhov coupler ice_sis ice_param land_null; \
-$(CVS) up -r $(ICE_tag) -P -d ice_sis)
-extras/SIS2: extras/MOM6_SIS
+extras/coupler: extras
+	cd extras; git clone git@gitlab.gfdl.noaa.gov:coupler_devel/coupler.git
+extras/atmos_null extras/ice_param extras/land_null: extras
+	cd extras; $(CVS) co -kk -r tikal -P atmos_null ice_param land_null; \
+cd atmos_null; $(CVS) co -kk -r tikal -P atmos_param/diag_integral atmos_param/monin_obukhov
+extras/SIS: extras
+	cd extras; $(CVS) co -kk -r tikal_coupler_ogrp -P -d SIS ice_sis
+extras/SIS2: extras
+	cd extras; git clone git@github.com:CommerceGov/NOAA-GFDL-SIS2.git SIS2
+extras/LM2: extras
 	mkdir -p $@
-	(cd $@; \
-git clone -n ssh://cvs.princeton.rdhpcs.noaa.gov/home/sdu/git/ice/sis2 ice_sis2; \
-ln -s ../MOM6_SIS/{coupler,*_param,*_null} .; \
-cd ice_sis2; git checkout dev/master)
-extras/CM2G: extras/MOM6_SIS
+	cd $@; $(CVS) co -kk -r tikal -P land_lad land_param
+extras/LM3: extras
 	mkdir -p $@
-	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_coupled atmos_fv_dynamics atmos_param_am3 atmos_shared coupler ice_param land_lad land_param)
-	(cd $@; rm -rf ice_sis; ln -s ../MOM6_SIS/ice_sis .)
+	cd $@; $(CVS) co -kk -r tikal -P land_lad2 land_param
+	cd $@; $(CVS) up -r tikal_gfort_slm land_lad2/{canopy_air/cana_tile,glacier/glac_tile,lake/lake_tile,river/river,soil/soil_tile,soil/uptake,vegetation/vegn_cohort,vegetation/vegn_dynamics,vegetation/vegn_photosynthesis,vegetation/vegn_radiation,vegetation/vegn_tile,land_model,canopy_air/canopy_air,glacier/glacier,lake/lake,soil/soil,vegetation/vegetation}.F90
+	find $@/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I ./shared/include -o '{}'.cpp {} \;
+	find $@/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
+	find $@/land_lad2 -type f -name \*.F90 -exec rename .F90 .F90_preCPP {} \;
+extras/AM2: extras
+	mkdir -p $@
+	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_coupled atmos_fv_dynamics atmos_param_am3 atmos_shared)
 	rm -rf $@/atmos_fv_dynamics/driver/solo
 site:
 	$(CVS) co -kk -r $(BIN_tag) -P -d site fre/fre-commands/site
@@ -280,75 +284,80 @@ build/gnu/env:
 	@echo module load netcdf/4.2.0 >> $@
 
 # solo executable
-$(foreach mode,$(MODES),build/%/solo_ocean/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/solo_ocean/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+SOLO_PTH=MOM6/config_src/dynamic MOM6/config_src/solo_driver MOM6/src/*/ MOM6/src/*/*/ shared
+$(foreach mode,$(MODES),build/%/solo_ocean/$(mode)/MOM6): SRCPTH=$(SOLO_PTH)
+$(foreach mode,$(MODES),build/%/solo_ocean/$(mode)/MOM6): $(foreach dir,$(SOLO_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
-	@echo SRCPTH=$(SRCPTH)
+	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
 	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
 	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
 # Symmetric executable
-$(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic_symmetric,config_src/solo_driver,src/{*,*/*}}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): $(foreach dir,config_src/dynamic_symmetric config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+SOLOSYM_PTH=MOM6/config_src/dynamic_symmetric MOM6/config_src/solo_driver MOM6/src/*/ MOM6/src/*/*/ shared
+$(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): SRCPTH=$(SOLOSYM_PTH)
+$(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): $(foreach dir,$(SOLOSYM_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
-	@echo SRCPTH=$(SRCPTH)
+	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
 	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
 	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
 # SIS executable
-$(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/MOM6_SIS/{*,*/*}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/MOM6_SIS/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+SIS_PTH=MOM6/config_src/dynamic MOM6/config_src/coupled_driver MOM6/src/*/ MOM6/src/*/*/ $(foreach dir,atmos_null coupler land_null ice_param SIS,extras/$(dir)) shared
+$(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): SRCPTH=$(SIS_PTH)
+$(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): $(foreach dir,$(SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
-	@echo SRCPTH=$(SRCPTH)
+	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
 	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
 	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
 # SIS2 executable
-$(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/SIS2/{*,*/*}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/SIS2/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+SIS2_PTH=MOM6/config_src/dynamic MOM6/config_src/coupled_driver MOM6/src/*/ MOM6/src/*/*/ $(foreach dir,atmos_null coupler land_null ice_param SIS2,extras/$(dir)) shared
+$(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): SRCPTH=$(SIS2_PTH)
+$(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): $(foreach dir,$(SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
-	@echo SRCPTH=$(SRCPTH)
+	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
 	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
 	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
-# AM2 executable
-$(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): SRCPTH="./ ../../../../MOM6/{config_src/dynamic,config_src/coupled_driver,src/{*,*/*}}/ ../../../../extras/CM2G/{*,*/*}/ ../../../../shared/"
-$(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): $(foreach dir,config_src/dynamic config_src/coupled_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) $(foreach dir,$(wildcard extras/CM2G/*),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+# AM2+LM2+SIS executable
+AM2_LM2_SIS_PTH=MOM6/config_src/dynamic MOM6/config_src/coupled_driver MOM6/src/*/ MOM6/src/*/*/ $(foreach dir,AM2 coupler LM2 ice_param SIS,extras/$(dir)) shared
+$(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): SRCPTH=$(AM2_LM2_SIS_PTH)
+$(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): $(foreach dir,$(AM2_LM2_SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
-	@echo SRCPTH=$(SRCPTH)
+	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths $(SRCPTH))
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
 	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
 	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
