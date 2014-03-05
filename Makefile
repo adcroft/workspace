@@ -174,7 +174,7 @@ backup: Clean
 	tar zcvf ~/MOM6_backup.tgz MOM6
 
 # This section defines how to checkout and layout the source code
-checkout: MOM6 shared extras/coupler extras/ice_param extras/SIS extras/SIS2 extras/LM2 extras/LM3 extras/AM2 site bin builddir
+checkout: MOM6 shared extras/coupler extras/ice_param extras/SIS extras/SIS2 extras/LM2 extras/LM3 extras/AM2 site bin
 MOM6:
 	git clone --recursive git@github.com:CommerceGov/NOAA-GFDL-MOM6.git MOM6
 shared:
@@ -185,26 +185,26 @@ shared:
 	cvs up -r tikal_groupupdate_z1l shared/mpp/mpp_domains.F90 shared/mpp/test_mpp_domains.F90 shared/mpp/include/mpp_domains_misc.inc shared/mpp/include/mpp_domains_util.inc
 extras:
 	mkdir -p $@
-extras/coupler: extras
+extras/coupler: | extras
 	cd extras; git clone git@gitlab.gfdl.noaa.gov:coupler_devel/coupler.git
-extras/atmos_null extras/ice_param extras/land_null: extras
+extras/atmos_null extras/ice_param extras/land_null: | extras
 	cd extras; $(CVS) co -kk -r tikal -P atmos_null ice_param land_null; \
 cd atmos_null; $(CVS) co -kk -r tikal -P atmos_param/diag_integral atmos_param/monin_obukhov
-extras/SIS: extras
+extras/SIS: | extras
 	cd extras; $(CVS) co -kk -r tikal_coupler_ogrp -P -d SIS ice_sis
-extras/SIS2: extras
+extras/SIS2: | extras
 	cd extras; git clone git@github.com:CommerceGov/NOAA-GFDL-SIS2.git SIS2
-extras/LM2: extras
+extras/LM2: | extras
 	mkdir -p $@
 	cd $@; $(CVS) co -kk -r tikal -P land_lad land_param
-extras/LM3: extras
+extras/LM3: | extras
 	mkdir -p $@
 	cd $@; $(CVS) co -kk -r tikal -P land_lad2 land_param
 	cd $@; $(CVS) up -r tikal_gfort_slm land_lad2/{canopy_air/cana_tile,glacier/glac_tile,lake/lake_tile,river/river,soil/soil_tile,soil/uptake,vegetation/vegn_cohort,vegetation/vegn_dynamics,vegetation/vegn_photosynthesis,vegetation/vegn_radiation,vegetation/vegn_tile,land_model,canopy_air/canopy_air,glacier/glacier,lake/lake,soil/soil,vegetation/vegetation}.F90
 	find $@/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I ./shared/include -o '{}'.cpp {} \;
 	find $@/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
 	find $@/land_lad2 -type f -name \*.F90 -exec rename .F90 .F90_preCPP {} \;
-extras/AM2: extras
+extras/AM2: | extras
 	mkdir -p $@
 	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_coupled atmos_fv_dynamics atmos_param_am3 atmos_shared)
 	rm -rf $@/atmos_fv_dynamics/driver/solo
@@ -213,7 +213,7 @@ site:
 bin:
 	$(CVS) co -kk -r $(BIN_tag) -P -d bin bin-pub
 builddir: # Target invoked for documenting (use with make -n checkout
-	mkdir -p $(foreach expt,shared $(EXPT_EXECS),build/$(expt).$(COMPILER).$(EXEC_MODE))
+	mkdir -p $(foreach comp,$(COMPILERS),$(foreach expt,shared $(EXPT_EXECS),build/$(expt).$(comp).$(EXEC_MODE)))
 MOM6/pkg/CVmix:
 	cd MOM6; git submodule init; git submodule update
 #cd MOM6; git submodule add ssh://cvs.princeton.rdhpcs.noaa.gov/home/aja/Repos/CVmix.git pkg/CVmix
