@@ -20,9 +20,11 @@ SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025,ocean_SIS/$(dir
 #SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs GOLD_SIS_025 MOM6z_SIS_025,ocean_SIS/$(dir))
 #SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ocean_SIS/$(dir))
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs,ocean_SIS2/$(dir))
-CPLD_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
-EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(CPLD_EXPTS)
-EXPT_EXECS=solo_ocean solo_ocean_symmetric ocean_SIS ocean_SIS2 coupled_AM2_SIS # Executable/model configurations to build
+AM2_SIS_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
+AM2_LM3_SIS_EXPTS=$(foreach dir,AM2_MOM6i_1deg,coupled_AM2_LM3_SIS/$(dir))
+AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2B_MOM6i_1deg AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
+EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(AM2_SIS_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS)
+EXPT_EXECS=solo_ocean solo_ocean_symmetric ocean_SIS ocean_SIS2 coupled_AM2_SIS coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #For non-GFDL users: CVS=cvs -d /ncrc/home2/fms/cvs
 #For GFDL users: CVS=cvs -d :ext:cvs.princeton.rdhpcs.noaa.gov:/home/fms/cvs
 #For when certificates are down: CVS=cvs -d :ext:gfdl:/home/fms/cvs
@@ -72,7 +74,7 @@ SHELL=tcsh
 # The "all" target depends on which set of nodes we are on...
 ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c1-batch$(n))),$(HOST))
 ALLMESG=On batch nodes: building executables, running experiments
-ALLTARGS=ale solo symmetric sis sis2 coupled status
+ALLTARGS=ale solo symmetric sis sis2 am2 am2_sis am2_sis2 status
 else
 ALLMESG=On login nodes: building executables, reporting status
 ALLTARGS=$(EXEC_MODE) status
@@ -95,7 +97,9 @@ solo: build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6 $(foreach dir,$(SOLO_EXPTS)
 symmetric: build/$(COMPILER)/solo_ocean_symmetric/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
 sis: build/$(COMPILER)/ocean_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
 sis2: build/$(COMPILER)/ocean_SIS2/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS2_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
-coupled: build/$(COMPILER)/coupled_AM2_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(CPLD_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+am2: build/$(COMPILER)/coupled_AM2_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(AM2_SIS_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+am2_sis: build/$(COMPILER)/coupled_AM2_LM3_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(AM2_LM3_SIS_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
+am2_sis2: build/$(COMPILER)/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6 $(foreach dir,$(AM2_LM3_SIS2_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
 Ale:
 	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) ale;)
 Solo:
@@ -105,7 +109,7 @@ Sis:
 Sis2:
 	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) sis2;)
 Coupled:
-	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) coupled;)
+	$(foreach comp,$(COMPILERS),make COMPILER=$(comp) am2 am2_sis am2_sis2;)
 All:
 	make Ale Solo
 	make Sis Sis2
@@ -363,6 +367,38 @@ $(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): $(foreach dir,$(A
 	(cd $(dir $@); rm -f MOM6)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
+# AM2+LM3+SIS executable
+AM2_LM3_SIS_PTH=MOM6/config_src/dynamic MOM6/config_src/coupled_driver MOM6/src/*/ MOM6/src/*/*/ $(foreach dir,AM2 coupler LM3 ice_param SIS,extras/$(dir)) shared
+$(foreach mode,$(MODES),build/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): SRCPTH=$(AM2_LM3_SIS_PTH)
+$(foreach mode,$(MODES),build/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): $(foreach dir,$(AM2_LM2_SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+	@echo; echo Building $@
+	@echo SRCPTH="$(SRCPTH)"
+	@echo MAKEMODE=$(MAKEMODE)
+	@echo COMPILER=$(COMPILER)
+	@echo EXEC_MODE=$(EXEC_MODE)
+	mkdir -p $(dir $@)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f MOM6)
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
+
+# AM2+LM3+SIS2 executable
+AM2_LM3_SIS2_PTH=MOM6/config_src/dynamic MOM6/config_src/coupled_driver MOM6/src/*/ MOM6/src/*/*/ $(foreach dir,AM2 coupler LM3 ice_param SIS2,extras/$(dir)) shared
+$(foreach mode,$(MODES),build/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): SRCPTH=$(AM2_LM3_SIS2_PTH)
+$(foreach mode,$(MODES),build/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): $(foreach dir,$(AM2_LM3_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+	@echo; echo Building $@
+	@echo SRCPTH="$(SRCPTH)"
+	@echo MAKEMODE=$(MAKEMODE)
+	@echo COMPILER=$(COMPILER)
+	@echo EXEC_MODE=$(EXEC_MODE)
+	mkdir -p $(dir $@)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f MOM6)
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
+
 # Static global executable
 build/global.%/MOM6: build/shared.%/libfms.a
 build/global.%/MOM6: SRCPTH="./ ../../MOM6/examples/global/ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
@@ -398,17 +434,25 @@ $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),MOM6/examples/$(dir)/timestats.gnu): bu
 $(foreach dir,$(SYMMETRIC_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/solo_ocean_symmetric/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/ocean_SIS/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS2_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/ocean_SIS2/$(EXEC_MODE)/MOM6
-$(foreach dir,$(CPLD_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/coupled_AM2_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_SIS_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/coupled_AM2_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_LM3_SIS_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/coupled_AM2_LM3_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_LM3_SIS2_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
+
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),MOM6/examples/$(dir)/timestats.intel): build/intel/solo_ocean/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SYMMETRIC_EXPTS),MOM6/examples/$(dir)/timestats.intel): build/intel/solo_ocean_symmetric/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),MOM6/examples/$(dir)/timestats.intel): build/intel/ocean_SIS/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS2_EXPTS),MOM6/examples/$(dir)/timestats.intel): build/intel/ocean_SIS2/$(EXEC_MODE)/MOM6
-$(foreach dir,$(CPLD_EXPTS),MOM6/examples/$(dir)/timestats.intel): build/intel/coupled_AM2_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_SIS_EXPTS),MOM6/examples/$(dir)/timestats.intel): build/intel/coupled_AM2_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_LM3_SIS_EXPTS),MOM6/examples/$(dir)/timestats.intel): build/intel/coupled_AM2_LM3_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_LM3_SIS2_EXPTS),MOM6/examples/$(dir)/timestats.intel): build/intel/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
+
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),MOM6/examples/$(dir)/timestats.pgi): build/pgi/solo_ocean/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SYMMETRIC_EXPTS),MOM6/examples/$(dir)/timestats.pgi): build/pgi/solo_ocean_symmetric/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),MOM6/examples/$(dir)/timestats.pgi): build/pgi/ocean_SIS/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS2_EXPTS),MOM6/examples/$(dir)/timestats.pgi): build/pgi/ocean_SIS2/$(EXEC_MODE)/MOM6
-$(foreach dir,$(CPLD_EXPTS),MOM6/examples/$(dir)/timestats.pgi): build/pgi/coupled_AM2_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_SIS_EXPTS),MOM6/examples/$(dir)/timestats.pgi): build/pgi/coupled_AM2_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_LM3_SIS_EXPTS),MOM6/examples/$(dir)/timestats.pgi): build/pgi/coupled_AM2_LM3_SIS/$(EXEC_MODE)/MOM6
+$(foreach dir,$(AM2_LM3_SIS2_EXPTS),MOM6/examples/$(dir)/timestats.pgi): build/pgi/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
 
 # Rules for configuring and running experiments ################################
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/unit_tests/timestats.$(cmp)): NPES=2
@@ -510,6 +554,15 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(cmp
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(cmp)): NPES=90
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/AM2_MOM6i_1deg/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS/AM2_MOM6i_1deg/timestats.$(cmp)): NPES=90
+$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS/AM2_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_LM3_SIS/AM2_MOM6i_1deg/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1deg/timestats.$(cmp)): NPES=90
+$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1deg/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/timestats.$(cmp)): NPES=90
+$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(cmp)): NPES=120
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2Gfixed/$(fl))
