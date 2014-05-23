@@ -11,20 +11,23 @@ SOLO_EXPTS=$(foreach dir, \
           resting/layer \
           torus_advection_test lock_exchange external_gwave single_column \
           sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
-          double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer \
+          double_gyre DOME benchmark global nonBous_global Phillips_2layer \
           ,solo_ocean/$(dir))
+SOLO_EXPTS+=solo_ocean/MESO_025_63L
 #         double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer \
 #
 SYMMETRIC_EXPTS=solo_ocean/circle_obcs
-SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025,ocean_SIS/$(dir))
-#SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs GOLD_SIS_025 MOM6z_SIS_025,ocean_SIS/$(dir))
+SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025 MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18,ocean_SIS/$(dir))
+#SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025 GOLD_SIS_025 ,ocean_SIS/$(dir))
+#SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025,ocean_SIS/$(dir))
 #SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ocean_SIS/$(dir))
-SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs,ocean_SIS2/$(dir))
+SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs SIS2_cgrid SIS2_bergs_cgrid MOM6z_SIS2_025,ocean_SIS2/$(dir))
+#SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs SIS2_cgrid SIS2_bergs_cgrid,ocean_SIS2/$(dir))
 AM2_SIS_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
 AM2_LM3_SIS_EXPTS=$(foreach dir,AM2_MOM6i_1deg,coupled_AM2_LM3_SIS/$(dir))
 AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2B_MOM6i_1deg AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
 EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(AM2_SIS_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS)
-EXPT_EXECS=solo_ocean solo_ocean_symmetric ocean_SIS ocean_SIS2 coupled_AM2_SIS coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
+EXPT_EXECS=solo_ocean solo_ocean_symmetric ocean_SIS ocean_SIS2 coupled_AM2_SIS coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 coupled_AM4_LM3_SIS # Executable/model configurations to build
 #For non-GFDL users: CVS=cvs -d /ncrc/home2/fms/cvs
 #For GFDL users: CVS=cvs -d :ext:cvs.princeton.rdhpcs.noaa.gov:/home/fms/cvs
 #For when certificates are down: CVS=cvs -d :ext:gfdl:/home/fms/cvs
@@ -182,11 +185,13 @@ checkout: MOM6 shared extras/coupler extras/ice_param extras/SIS extras/SIS2 ext
 MOM6:
 	git clone --recursive git@github.com:CommerceGov/NOAA-GFDL-MOM6.git MOM6
 shared:
-	$(CVS) co -kk -r $(FMS_tag) -P shared
-	cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp.F90
-	cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp_bilinear.F90
-	cvs co -r siena_groupupdate_z1l shared/mpp/include/mpp_group_update.h
-	cvs up -r tikal_groupupdate_z1l shared/mpp/mpp_domains.F90 shared/mpp/test_mpp_domains.F90 shared/mpp/include/mpp_domains_misc.inc shared/mpp/include/mpp_domains_util.inc
+	$(CVS) co -kk -r tikal_201403 -P shared
+	cvs up -r tikal_bugfix_z1l shared/mpp/include/mpp_update_domains2D.h
+#$(CVS) co -kk -r $(FMS_tag) -P shared
+#cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp.F90
+#cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp_bilinear.F90
+#cvs co -r siena_groupupdate_z1l shared/mpp/include/mpp_group_update.h
+#cvs up -r tikal_groupupdate_z1l shared/mpp/mpp_domains.F90 shared/mpp/test_mpp_domains.F90 shared/mpp/include/mpp_domains_misc.inc shared/mpp/include/mpp_domains_util.inc
 extras:
 	mkdir -p $@
 extras/coupler: | extras
@@ -212,6 +217,21 @@ extras/AM2: | extras
 	mkdir -p $@
 	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_coupled atmos_fv_dynamics atmos_param_am3 atmos_shared)
 	rm -rf $@/atmos_fv_dynamics/driver/solo
+
+extras/AM4: | extras
+	mkdir -p $@
+	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_coupled cubed_sphere_coupled atmos_param_am3 atmos_shared)
+	(cd $@; cvs update -r tikal_ncar1p5_micro_rsh atmos_param/strat_cloud/aerosol_cloud.F90 atmos_param/strat_cloud/cldwat2m_micro.F90 atmos_param/strat_cloud/microphysics.F90 atmos_param/strat_cloud/morrison_gettelman_microp.F90 atmos_param/strat_cloud/rotstayn_klein_mp.F90 atmos_param/strat_cloud/strat_cloud.F90 atmos_param/strat_cloud/strat_cloud_utilities.F90 atmos_param/strat_cloud/strat_nml.h atmos_param/strat_cloud/micro_mg.F90)
+	(cd $@; cvs update -r tikal_precip_paths_rsh atmos_param/moist_processes/moist_processes.F90)
+	(cd $@; cvs update -r tikal_ncar1p5_micro_rsh_wfc atmos_param/strat_cloud/rotstayn_klein_mp.F90)
+	(cd $@; cvs update -r tikal_rad_diag_xlh_cjg atmos_param/sea_esf_rad/longwave_driver.F90 atmos_param/sea_esf_rad/rad_output_file.F90 atmos_param/sea_esf_rad/sealw99.F90)
+	(cd $@; cvs update -r tikal_pbl_depth_cjg atmos_param/physics_driver/physics_driver.F90 atmos_param/vert_turb_driver/vert_turb_driver.F90)
+	(cd $@; cvs update -r dpconv20140318_miz atmos_param/shallow_cu/conv_plumes_k.F90 atmos_param/shallow_cu/conv_plumes_k.F90)
+	(cd $@; cvs update -r tikal_pbl_depth_cjg atmos_coupled/atmos_model.F90)
+	(cd $@; cvs update -r tikal_pbl_depth_cjg atmos_cubed_sphere/driver/coupled/atmosphere.F90 atmos_cubed_sphere/driver/coupled/fv_physics.F90)
+	(cd $@; git clone git@gitlab.gfdl.noaa.gov:coupler_devel/coupler.git)
+	(cd $@/coupler; git checkout user/nnz/merge_tikal_pbl_depth_cjg)
+
 site:
 	$(CVS) co -kk -r $(BIN_tag) -P -d site fre/fre-commands/site
 bin:
@@ -399,6 +419,22 @@ $(foreach mode,$(MODES),build/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): $(foreach di
 	(cd $(dir $@); rm -f MOM6)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
+# AM4+LM3+SIS executable
+AM4_LM3_SIS_PTH=MOM6/config_src/dynamic MOM6/config_src/coupled_driver MOM6/src/*/ MOM6/src/*/*/ $(foreach dir,AM4 LM3 ice_param SIS,extras/$(dir)) shared
+$(foreach mode,$(MODES),build/%/coupled_AM4_LM3_SIS/$(mode)/MOM6): SRCPTH=$(AM4_LM3_SIS_PTH)
+$(foreach mode,$(MODES),build/%/coupled_AM4_LM3_SIS/$(mode)/MOM6): $(foreach dir,$(AM4_LM3_SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+	@echo; echo Building $@
+	@echo SRCPTH="$(SRCPTH)"
+	@echo MAKEMODE=$(MAKEMODE)
+	@echo COMPILER=$(COMPILER)
+	@echo EXEC_MODE=$(EXEC_MODE)
+	mkdir -p $(dir $@)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f MOM6)
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
+
 # Static global executable
 build/global.%/MOM6: build/shared.%/libfms.a
 build/global.%/MOM6: SRCPTH="./ ../../MOM6/examples/global/ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
@@ -540,14 +576,29 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/GOLD_SIS_icebergs/timestats.$
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(cmp)): NPES=1024
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/GOLD_SIS_025/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/GOLD_SIS_025/$(fl))
 
-$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/timestats.$(cmp)): NPES=288
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/timestats.$(cmp)): NPES=512
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/MOM6z_SIS_025/$(fl))
 
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/timestats.$(cmp)): NPES=254
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/Baltic/timestats.$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/Baltic/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/ocean_SIS2/Baltic/$(fl))
+
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2/timestats.$(cmp)): NPES=60
-$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS2/SIS2/$(fl))
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/ocean_SIS2/SIS2/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(cmp)): NPES=60
-$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS2/SIS2_icebergs/$(fl))
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2_icebergs/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/ocean_SIS2/SIS2_icebergs/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2_cgrid/timestats.$(cmp)): NPES=60
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2_cgrid/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/ocean_SIS2/SIS2_cgrid/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2_bergs_cgrid/timestats.$(cmp)): NPES=60
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2_bergs_cgrid/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/ocean_SIS2/SIS2_bergs_cgrid/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/MOM6z_SIS2_025/timestats.$(cmp)): NPES=512
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/MOM6z_SIS2_025/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/ocean_SIS2/MOM6z_SIS2_025/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(cmp)): NPES=90
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2G63L/$(fl))
@@ -559,10 +610,10 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS/AM2_MOM6i_1deg/time
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS/AM2_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_LM3_SIS/AM2_MOM6i_1deg/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1deg/timestats.$(cmp)): NPES=90
-$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1deg/$(fl))
+$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1deg/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/timestats.$(cmp)): NPES=90
-$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/$(fl))
+$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(cmp)): NPES=120
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2Gfixed/$(fl))
@@ -584,11 +635,11 @@ $(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
 	@echo; echo Running in $(dir $@) with $<
 	@cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
 	@rm -f $(dir $@)Depth_list.nc
-	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv OMP_NUM_THREADS 1; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
+	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$(dir $@): ,'
 	@mv $(dir $@)std.out $(dir $@)std.$(COMPILER).out
 	@mv $(dir $@)timestats $@
-	@cd $(dir $@); echo -n 'git status: '; git status -s timestats.$(COMPILER)
-	@cd $(dir $@); echo; git status .
+	@cd $(dir $@); (echo -n 'git status: '; git status -s timestats.$(COMPILER)) | sed 's,^,$(dir $@): ,'
+	@cd $(dir $@); (echo; git status .) | sed 's,^,$(dir $@): ,'
 #	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
 ##(cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out)
 ## cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out
