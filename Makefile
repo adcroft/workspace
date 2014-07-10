@@ -161,6 +161,7 @@ status: # Check CVS status of $(TIMESTATS)
 	@cd MOM6; git status -- $(subst MOM6/,,$(TIMESTATS))
 	@echo ==================================================================
 	@cd MOM6; git status -s -- $(subst MOM6/,,$(TIMESTATS))
+	@find MOM6/examples/ -name stderr.out -exec grep -H 'diag_util_mod::opening_file' {} \;
 force: cleantimestats
 	@make all
 cleantimestats:
