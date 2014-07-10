@@ -641,6 +641,7 @@ $(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
 	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$(dir $@): ,'
 	@mv $(dir $@)std.out $(dir $@)std.$(COMPILER).out
 	@mv $(dir $@)timestats $@
+	-@( (mv -f $(dir $@)seaice.stats $(dir $@)seaice.stats.$(COMPILER)) >& /dev/null )
 	@cd $(dir $@); (echo -n 'git status: '; git status -s timestats.$(COMPILER)) | sed 's,^,$(dir $@): ,'
 	@cd $(dir $@); (echo; git status .) | sed 's,^,$(dir $@): ,'
 #	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
