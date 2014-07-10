@@ -17,7 +17,7 @@ SOLO_EXPTS+=solo_ocean/MESO_025_63L
 #         double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer \
 #
 SYMMETRIC_EXPTS=solo_ocean/circle_obcs
-SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025 MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18,ocean_SIS/$(dir))
+SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs OM4_025 MOM6z_SIS_025 MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18,ocean_SIS/$(dir))
 #SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025 GOLD_SIS_025 ,ocean_SIS/$(dir))
 #SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025,ocean_SIS/$(dir))
 #SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ocean_SIS/$(dir))
@@ -581,6 +581,9 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/timestats.$(cmp
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/timestats.$(cmp)): NPES=254
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/OM4_025/timestats.$(cmp)): NPES=512
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/OM4_025/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/OM4_025/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/Baltic/timestats.$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/Baltic/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/ocean_SIS2/Baltic/$(fl))
