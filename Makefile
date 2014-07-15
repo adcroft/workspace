@@ -187,6 +187,9 @@ MOM6:
 	git clone --recursive git@github.com:CommerceGov/NOAA-GFDL-MOM6.git MOM6
 shared:
 	$(CVS) co -kk -r tikal_201406 -P shared
+	cvs up -r tikal_group_update_fix_z1l shared/mpp/include/{mpp_domains_misc.inc,mpp_domains_util.inc,mpp_group_update.h}
+	cvs up -r tikal_group_update_fix_z1l shared/mpp/{mpp_domains.F90,test_mpp_domains.F90}
+	cd shared/; cvs up -r rms_sdu diag_manager
 #$(CVS) co -kk -r $(FMS_tag) -P shared
 #cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp.F90
 #cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp_bilinear.F90
