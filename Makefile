@@ -638,10 +638,13 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(c
 #%/timestats.intel: override COMPILER:=intel
 #%/timestats.pgi: override COMPILER:=pgi
 $(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
-	@echo; echo Running in $(dir $@) with $<
+	@echo $(dir $@): Using executable $< ' '
+	@echo -n $(dir $@): Starting at ' '; date
 	@cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
 	@rm -f $(dir $@)Depth_list.nc
-	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$(dir $@): ,'
+	@rm -f $@
+	set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$(dir $@): ,'
+	@echo -n $(dir $@): Done at ' '; date
 	@mv $(dir $@)std.out $(dir $@)std.$(COMPILER).out
 	@mv $(dir $@)timestats $@
 	@find $(dir $@) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats.$(COMPILER) \;
