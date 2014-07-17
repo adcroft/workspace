@@ -317,7 +317,6 @@ $(foreach mode,$(MODES),build/%/solo_ocean/$(mode)/MOM6): $(foreach dir,$(SOLO_P
 	@echo; echo Building $@
 	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
 	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
@@ -333,7 +332,6 @@ $(foreach mode,$(MODES),build/%/solo_ocean_symmetric/$(mode)/MOM6): $(foreach di
 	@echo; echo Building $@
 	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
 	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
@@ -349,7 +347,6 @@ $(foreach mode,$(MODES),build/%/ocean_SIS/$(mode)/MOM6): $(foreach dir,$(SIS_PTH
 	@echo; echo Building $@
 	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
 	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
@@ -365,7 +362,6 @@ $(foreach mode,$(MODES),build/%/ocean_SIS2/$(mode)/MOM6): $(foreach dir,$(SIS2_P
 	@echo; echo Building $@
 	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
 	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
@@ -381,7 +377,6 @@ $(foreach mode,$(MODES),build/%/coupled_AM2_SIS/$(mode)/MOM6): $(foreach dir,$(A
 	@echo; echo Building $@
 	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
 	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
@@ -397,7 +392,6 @@ $(foreach mode,$(MODES),build/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): $(foreach dir
 	@echo; echo Building $@
 	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
 	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
@@ -413,7 +407,6 @@ $(foreach mode,$(MODES),build/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): $(foreach di
 	@echo; echo Building $@
 	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
 	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
@@ -429,7 +422,6 @@ $(foreach mode,$(MODES),build/%/coupled_AM4_LM3_SIS/$(mode)/MOM6): $(foreach dir
 	@echo; echo Building $@
 	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
 	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
@@ -460,7 +452,6 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),build/$(cmp)/shared/$(mode)/l
 	@echo; echo Building $@
 	@mkdir -p $(dir $@)
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	(cd $(dir $@); rm path_names; ../../../../bin/list_paths ../../../../shared)
 	(cd $(dir $@); mv path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
@@ -638,17 +629,15 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(c
 #%/timestats.intel: override COMPILER:=intel
 #%/timestats.pgi: override COMPILER:=pgi
 $(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
-	@echo $(dir $@): Using executable $< ' '
-	@echo -n $(dir $@): Starting at ' '; date
+	@echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 	@cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
-	@rm -f $(dir $@)Depth_list.nc
-	@rm -f $@
-	set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$(dir $@): ,'
-	@echo -n $(dir $@): Done at ' '; date
-	@mv $(dir $@)std.out $(dir $@)std.$(COMPILER).out
+	@rm -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats} $@
+	set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
+	@echo -n $@: Done at ' '; date
+	@mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
 	@mv $(dir $@)timestats $@
-	@find $(dir $@) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats.$(COMPILER) \;
-	@cd $(dir $@); (echo -n 'git status: '; git status -s timestats.$(COMPILER)) | sed 's,^,$(dir $@): ,'
+	@find $(dir @) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats$(suffix $@) \;
+	@cd $(dir $@); (echo -n 'git status: '; git status -s timestats$(suffix $@)) | sed 's,^,$@: ,'
 	@cd $(dir $@); (echo; git status .) | sed 's,^,$(dir $@): ,'
 #	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
 ##(cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out)
