@@ -636,7 +636,7 @@ $(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
 	@echo -n $@: Done at ' '; date
 	@mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
 	@mv $(dir $@)timestats $@
-	@find $(dir @) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats$(suffix $@) \;
+	find $(dir $@) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats$(suffix $@) \;
 	@cd $(dir $@); (echo -n 'git status: '; git status -s timestats$(suffix $@)) | sed 's,^,$@: ,'
 	@cd $(dir $@); (echo; git status .) | sed 's,^,$(dir $@): ,'
 #	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
