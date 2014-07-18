@@ -6,6 +6,7 @@ ALE_EXPTS=$(foreach dir, \
           seamount/z seamount/sigma \
           flow_downslope/z flow_downslope/rho flow_downslope/sigma \
           global_ALE/z \
+          mixed_layer_restrat_2d \
           ,solo_ocean/$(dir))
 SOLO_EXPTS=$(foreach dir, \
           resting/layer \
@@ -537,6 +538,9 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/seamount/layer/timestats.$(c
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/seamount/z/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/seamount/z/$(fl))
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/seamount/sigma/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/seamount/sigma/$(fl))
 
+$(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/mixed_layer_restrat_2d/timestats.$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/mixed_layer_restrat_2d/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/mixed_layer_restrat_2d/$(fl))
+
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/external_gwave/timestats.$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),MOM6/examples/solo_ocean/external_gwave/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/solo_ocean/external_gwave/$(fl))
 
@@ -636,7 +640,7 @@ $(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
 	@echo -n $@: Done at ' '; date
 	@mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
 	@mv $(dir $@)timestats $@
-	find $(dir $@) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats$(suffix $@) \;
+	@find $(dir $@) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats$(suffix $@) \;
 	@cd $(dir $@); (echo -n 'git status: '; git status -s timestats$(suffix $@)) | sed 's,^,$@: ,'
 	@cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'
 #	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
