@@ -461,6 +461,7 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),build/$(cmp)/shared/$(mode)/l
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
 
 # Rules to associated an executable to each experiment #########################
+# (implemented by makeing the executable the FIRST pre-requisite)
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/solo_ocean/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SYMMETRIC_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/solo_ocean_symmetric/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),MOM6/examples/$(dir)/timestats.gnu): build/gnu/ocean_SIS/$(EXEC_MODE)/MOM6
@@ -616,64 +617,25 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2B_MOM6i_1d
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/timestats.$(cmp)): NPES=90
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1deg/$(fl))
 
-$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(cmp)): NPES=120
-$(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2Gfixed/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2Gfixed/$(fl))
-	@echo; echo Running $(dir $@)
-	dmget /archive/gold/datasets/CM2G/perth/INPUT/*
-	(cd $(dir $@); mkdir -p INPUT; cd INPUT; $(CP) /archive/gold/datasets/CM2G/perth/INPUT/* .)
-	dmget /archive/gold/datasets/CM2G/perth/mosaic.mica2.unpacked/*
-	(cd $(dir $@); cd INPUT; $(CP) /archive/gold/datasets/CM2G/perth/mosaic.mica2.unpacked/* .)
-	dmget /archive/gold/datasets/CM2G/perth/RESTART/CM2G.initCond_2008.06.04.unpacked/*
-	(cd $(dir $@); cd INPUT ; $(CP) /archive/gold/datasets/CM2G/perth/RESTART/CM2G.initCond_2008.06.04.unpacked/* .)
-	-cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
-	(cd $(dir $@); rm -f timestats; (aprun -np $(NPES) ../../../$< > std.out) |& tee stderr.out)
-
-# Rule to run all executables
-#%/timestats.gnu: override COMPILER:=gnu
-#%/timestats.intel: override COMPILER:=intel
-#%/timestats.pgi: override COMPILER:=pgi
-$(foreach cmp,$(COMPILERS),%/timestats.$(cmp)):
-	@echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
-	@cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
-	@rm -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats} $@
-	set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
-	@echo -n $@: Done at ' '; date
-	@mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
-	@mv $(dir $@)timestats $@
-	@find $(dir $@) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats$(suffix $@) \;
-	@cd $(dir $@); (echo -n 'git status: '; git status -s timestats$(suffix $@)) | sed 's,^,$@: ,'
-	@cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'
-#	set rdir=$$cwd; (cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out)
-##(cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_UNEX_BUFFER_SIZE 122914560; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out)
-## cd $(dir $@); rm -f timestats.$(COMPILER); setenv F_UFMTENDIAN big; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out
-## cd $(dir $@); rm -f timestats; setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; (aprun -n $(NPES) ../../../$< > std.out) |& tee stderr.out
+# Canned rule to run all experiments
+define run-model-to-make-timestats
+echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
+@cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
+@rm -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats} $@
+set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
+@echo -n $@: Done at ' '; date
+@mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
+@mv $(dir $@)timestats $@
+@find $(dir $@) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats$(suffix $@) \;
+@cd $(dir $@); (echo -n 'git status: '; git status -s timestats$(suffix $@)) | sed 's,^,$@: ,'
+@cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'
+endef
+%/timestats.gnu: ; $(run-model-to-make-timestats)
+%/timestats.intel: ; $(run-model-to-make-timestats)
+%/timestats.pgi: ; $(run-model-to-make-timestats)
 
 # Special rule to get misc files
 bin/git-version-string:
 	$(CVS) co -kk -r git_tools_sdu fre-commands
 	mkdir -p bin; cp fre-commands/bin/git-version-string bin/
 	rm -rf CVS fre-commands
-# Rules to do some performance tests using benchmark
-benchmark: $(foreach n,48 96 144 192 216 240 288 384 480 576,MOM6/examples/solo_ocean/benchmark/c1ms.$(COMPILER).360x180x22-n$(n).rank)
-benchmark: $(foreach n,24 48 72 96 144 192 216 240 288 384 480 576,MOM6/examples/solo_ocean/benchmark/c1ms.$(COMPILER).360x180x22-n$(n).norank)
-MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: SHRTHOST=$(word 1,$(subst -batch, ,$(HOST)))
-MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: PARTS=$(shell echo $(*F) | sed 's/\([a-zA-Z0-9]*\)\.\([a-zA-Z0-9]*\)\.\([0-9]*x[0-9]*x[0-9]*\)\(.*\)/\1 \2 \3 \4/')
-MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: COMPILER=$(word 2,$(PARTS))
-MOM6/examples/solo_ocean/benchmark/%.norank MOM6/examples/solo_ocean/benchmark/%.rank: APARGS=$(shell echo $(word 4,$(PARTS)) | sed 's/-/ -/g' | sed 's/\(-[a-zA-Z]\)\([0-9][0-9]*\)/\1 \2/g')
-MOM6/examples/solo_ocean/benchmark/%.norank: build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
-	make build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6
-	-cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
-	(cd $(@D); setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; aprun $(APARGS) ../../../build/solo.$(COMPILER).prod/MOM6 >& std.out)
-	mv MOM6/examples/solo_ocean/benchmark/std.out $@
-MOM6/examples/solo_ocean/benchmark/%.rank: NORANK=$(subst .rank,.norank,$@)
-MOM6/examples/solo_ocean/benchmark/%.rank: PES=$(shell echo $(word 4,$(PARTS))| sed 's/.*-n\([0-9][0-9]*\).*/\1/')
-MOM6/examples/solo_ocean/benchmark/%.rank: MOM6/examples/solo_ocean/benchmark/%.norank
-	make $(NORANK)
-	@echo cp *3*=`awk /X-AX/,/Y-AX/ $(NORANK) | grep -v "Y-AX" | sed 's/.*=//' | wc -w`x`fgrep "Y-AX" $(NORANK) | sed 's/.*=//' | wc -w`=$(PES) $(@D)/MPICH_RANK_ORDER
-	@cp *3*=`awk /X-AX/,/Y-AX/ $(NORANK) | grep -v "Y-AX" | sed 's/.*=//' | wc -w`x`fgrep "Y-AX" $(NORANK) | sed 's/.*=//' | wc -w`=$(PES) $(@D)/MPICH_RANK_ORDER
-	-cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
-	(cd $(@D); setenv PSC_OMP_AFFINITY FALSE; setenv OMP_NUM_THREADS 1; setenv MPICH_CPUMASK_DISPLAY; setenv MPICH_RANK_REORDER_METHOD 3; aprun $(APARGS) ../../../build/solo.$(COMPILER).prod/MOM6 >& std.out)
-	rm $(@D)/MPICH_RANK_ORDER
-	mv MOM6/examples/solo_ocean/benchmark/std.out $@
-
-#@cp *3*=`fgrep "X-AX" $(NORANK) | sed 's/.*=//' | wc -w`x`fgrep "Y-AX" $(NORANK) | sed 's/.*=//' | wc -w`=$(PES) $(@D)/MPICH_RANK_ORDER
