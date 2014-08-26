@@ -15,20 +15,15 @@ SOLO_EXPTS=$(foreach dir, \
           double_gyre DOME benchmark global nonBous_global Phillips_2layer \
           ,solo_ocean/$(dir))
 SOLO_EXPTS+=solo_ocean/MESO_025_63L
-#         double_gyre DOME benchmark global nonBous_global MESO_025_63L Phillips_2layer \
-#
 SYMMETRIC_EXPTS=solo_ocean/circle_obcs
 SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs OM4_025 MOM6z_SIS_025 MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18,ocean_SIS/$(dir))
-#SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025 GOLD_SIS_025 ,ocean_SIS/$(dir))
-#SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs MOM6z_SIS_025,ocean_SIS/$(dir))
-#SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ocean_SIS/$(dir))
+#SIS_EXPTS+=ocean_SIS/GOLD_SIS_025
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs SIS2_cgrid SIS2_bergs_cgrid MOM6z_SIS2_025,ocean_SIS2/$(dir))
-#SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs SIS2_cgrid SIS2_bergs_cgrid,ocean_SIS2/$(dir))
 AM2_SIS_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
 AM2_LM3_SIS_EXPTS=$(foreach dir,AM2_MOM6i_1deg,coupled_AM2_LM3_SIS/$(dir))
 AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2B_MOM6i_1deg AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
 EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(AM2_SIS_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS)
-EXPT_EXECS=solo_ocean solo_ocean_symmetric ocean_SIS ocean_SIS2 coupled_AM2_SIS coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 coupled_AM4_LM3_SIS # Executable/model configurations to build
+EXPT_EXECS=solo_ocean solo_ocean_symmetric ocean_SIS ocean_SIS2 coupled_AM2_SIS coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #For non-GFDL users: CVS=cvs -d /ncrc/home2/fms/cvs
 #For GFDL users: CVS=cvs -d :ext:cvs.princeton.rdhpcs.noaa.gov:/home/fms/cvs
 #For when certificates are down: CVS=cvs -d :ext:gfdl:/home/fms/cvs
