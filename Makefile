@@ -243,9 +243,9 @@ MOM6/pkg/CVmix:
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory
-$(foreach cfg,$(EXPT_EXECS),build/gnu/$(cfg)/%/MOM6) build/gnu/shared/repro/libfms.a: override COMPILER:=gnu
-$(foreach cfg,$(EXPT_EXECS),build/intel/$(cfg)/%/MOM6) build/intel/shared/repro/libfms.a: override COMPILER:=intel
-$(foreach cfg,$(EXPT_EXECS),build/pgi/$(cfg)/%/MOM6) build/pgi/shared/repro/libfms.a: override COMPILER:=pgi
+$(foreach cfg,$(EXPT_EXECS) global,build/gnu/$(cfg)/%/MOM6) build/gnu/shared/repro/libfms.a: override COMPILER:=gnu
+$(foreach cfg,$(EXPT_EXECS) global,build/intel/$(cfg)/%/MOM6) build/intel/shared/repro/libfms.a: override COMPILER:=intel
+$(foreach cfg,$(EXPT_EXECS) global,build/pgi/$(cfg)/%/MOM6) build/pgi/shared/repro/libfms.a: override COMPILER:=pgi
 # Set REPRO and DEBUG variables based on the build directory
 %/prod/MOM6: EXEC_MODE=prod
 %/repro/MOM6: EXEC_MODE=repro
@@ -427,20 +427,20 @@ $(foreach mode,$(MODES),build/%/coupled_AM4_LM3_SIS/$(mode)/MOM6): $(foreach dir
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
 
 # Static global executable
-build/global.%/MOM6: build/shared.%/libfms.a
-build/global.%/MOM6: SRCPTH="./ ../../MOM6/examples/global/ ../../MOM6/{config_src/dynamic,config_src/solo_driver,src/{*,*/*}}/ ../../shared/"
-build/global.%/MOM6: $(foreach dir,examples/global config_src/dynamic config_src/solo_driver src/* src/*/*,$(wildcard MOM6/$(dir)/*.F90 MOM6/$(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
+GLOBAL_PTH=MOM6/examples/solo_ocean/global MOM6/config_src/solo_driver MOM6/src/*/ MOM6/src/*/*/ shared
+$(foreach mode,$(MODES),build/%/global/$(mode)/MOM6): SRCPTH=$(GLOBAL_PTH)
+$(foreach mode,$(MODES),build/%/global/$(mode)/MOM6): $(foreach dir,$(GLOBAL_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) build/%/shared/$(EXEC_MODE)/libfms.a
 	@echo; echo Building $@
-	@echo SRCPTH=$(SRCPTH)
+	@echo SRCPTH="$(SRCPTH)"
 	@echo MAKEMODE=$(MAKEMODE)
-	@echo COMPILER=$(COMPILER)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	mkdir -p $(dir $@)
-	(cd $(dir $@); rm -f path_names; ../../bin/list_paths $(SRCPTH))
-	(cd $(dir $@); ../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
-	(cd $(dir $@); ln -sf ../shared.$(COMPILER).$(EXEC_MODE)/*.{o,mod} .)
+	(cd $(dir $@); rm -f path_names; ../../../../bin/list_paths ./ $(foreach dir,$(SRCPTH),../../../../$(dir)))
+	(cd $(dir $@); ../../../../bin/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names)
+	(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.{o,mod} .)
 	(cd $(dir $@); rm -f MOM6)
-	(cd $(dir $@); source ../../build/env/$(COMPILER); make $(MAKEMODE) $(PMAKEOPTS))
+	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS))
+
 
 # Choose the compiler based on the build directory (repeated from above rules
 # due to different libfms.a target)
