@@ -16,9 +16,9 @@ SOLO_EXPTS=$(foreach dir, \
           ,solo_ocean/$(dir))
 SOLO_EXPTS+=solo_ocean/MESO_025_63L
 SYMMETRIC_EXPTS=solo_ocean/circle_obcs
-SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs OM4_025 MOM6z_SIS_025 MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18,ocean_SIS/$(dir))
+SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs OM4_025,ocean_SIS/$(dir))
 #SIS_EXPTS+=ocean_SIS/GOLD_SIS_025
-SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs SIS2_cgrid SIS2_bergs_cgrid MOM6z_SIS2_025,ocean_SIS2/$(dir))
+SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs SIS2_cgrid SIS2_bergs_cgrid OM4_025,ocean_SIS2/$(dir))
 AM2_SIS_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_SIS/$(dir))
 AM2_LM3_SIS_EXPTS=$(foreach dir,AM2_MOM6i_1deg,coupled_AM2_LM3_SIS/$(dir))
 AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2B_MOM6i_1deg AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
@@ -89,7 +89,7 @@ buildall: $(MODES)
 #debug: $(foreach exec,$(EXPT_EXECS),$(foreach comp,$(COMPILERS),build/$(exec).$(comp).debug/MOM6))
 #prod: $(foreach exec,$(EXPT_EXECS),$(foreach comp,$(COMPILERS),build/$(exec).$(comp).prod/MOM6))
 repro: $(foreach exec,$(EXPT_EXECS),build/$(COMPILER)/$(exec)/repro/MOM6)
-debug: build/shared.$(COMPILER).debug/libfms.a $(foreach exec,$(EXPT_EXECS),build/$(exec).$(COMPILER).debug/MOM6)
+debug: build/$(COMPILER)/shared/debug/libfms.a $(foreach exec,$(EXPT_EXECS),build/$(COMPILER)/$(exec)/debug/MOM6)
 prod: $(foreach exec,$(EXPT_EXECS),build/$(exec).$(COMPILER).prod/MOM6)
 ale: build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6 $(foreach dir,$(ALE_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
 solo: build/$(COMPILER)/solo_ocean/$(EXEC_MODE)/MOM6 $(foreach dir,$(SOLO_EXPTS),MOM6/examples/$(dir)/timestats.$(COMPILER))
@@ -576,7 +576,7 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/timestats.$(cmp
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/timestats.$(cmp)): NPES=254
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/MOM6z_SIS_025/MOM6z_SIS_025_mask_table.34.16x18/$(fl))
 
-$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/OM4_025/timestats.$(cmp)): NPES=512
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/OM4_025/timestats.$(cmp)): NPES=480
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS/OM4_025/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS/OM4_025/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/Baltic/timestats.$(cmp)): NPES=2
@@ -596,6 +596,9 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/SIS2_bergs_cgrid/timestats.$
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/MOM6z_SIS2_025/timestats.$(cmp)): NPES=512
 $(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/MOM6z_SIS2_025/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,MOM6/examples/ocean_SIS2/MOM6z_SIS2_025/$(fl))
+
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/OM4_025/timestats.$(cmp)): NPES=480
+$(foreach cmp,$(COMPILERS),MOM6/examples/ocean_SIS2/OM4_025/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/ocean_SIS2/OM4_025/$(fl))
 
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(cmp)): NPES=90
 $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_SIS/CM2G63L/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,MOM6/examples/coupled_AM2_SIS/CM2G63L/$(fl))
