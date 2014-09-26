@@ -48,8 +48,8 @@ COMPILERS=gnu intel pgi
 
 GOLD_tag=GOLD_ogrp
 MOM6_tag=dev/master
-FMS_tag=tikal
-ICE_tag=tikal
+FMS_tag=tikal_201409
+ICE_tag=tikal_201409
 BIN_tag=fre-commands-bronx-7
 
 # Default compiler configuration
@@ -176,16 +176,18 @@ cleancore:
 	-find MOM6/examples/ -name "*truncations" -type f -exec rm {} \;
 backup: Clean
 	tar zcvf ~/MOM6_backup.tgz MOM6
+package:
+	tar zcvf $(FMS_tag).tgz shared extras/{SIS,*null,coupler/*,ice_param} site bin
 
 # This section defines how to checkout and layout the source code
 checkout: MOM6 shared extras/coupler extras/ice_param extras/SIS extras/SIS2 extras/LM2 extras/LM3 extras/AM2 site bin
 MOM6:
 	git clone --recursive git@github.com:CommerceGov/NOAA-GFDL-MOM6.git MOM6
 shared:
-	$(CVS) co -kk -r tikal_201406 -P shared
-	cvs up -r tikal_group_update_fix_z1l shared/mpp/include/{mpp_domains_misc.inc,mpp_domains_util.inc,mpp_group_update.h}
-	cvs up -r tikal_group_update_fix_z1l shared/mpp/{mpp_domains.F90,test_mpp_domains.F90}
-	cd shared/; cvs up -r rms_sdu diag_manager
+	$(CVS) co -kk -r $(FMS_tag) -P shared
+#	cvs up -r tikal_group_update_fix_z1l shared/mpp/include/{mpp_domains_misc.inc,mpp_domains_util.inc,mpp_group_update.h}
+#	cvs up -r tikal_group_update_fix_z1l shared/mpp/{mpp_domains.F90,test_mpp_domains.F90}
+#	cd shared/; cvs up -r rms_sdu diag_manager
 #$(CVS) co -kk -r $(FMS_tag) -P shared
 #cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp.F90
 #cvs up -r tikal_missing_z1l shared/horiz_interp/horiz_interp_bilinear.F90
@@ -196,19 +198,19 @@ extras:
 extras/coupler: | extras
 	cd extras; git clone git@gitlab.gfdl.noaa.gov:coupler_devel/coupler.git
 extras/atmos_null extras/ice_param extras/land_null: | extras
-	cd extras; $(CVS) co -kk -r tikal -P atmos_null ice_param land_null; \
-cd atmos_null; $(CVS) co -kk -r tikal -P atmos_param/diag_integral atmos_param/monin_obukhov
+	cd extras; $(CVS) co -kk -r $(FMS_tag) -P atmos_null ice_param land_null; \
+cd atmos_null; $(CVS) co -kk -r $(FMS_tag) -P atmos_param/diag_integral atmos_param/monin_obukhov
 extras/SIS: | extras
 	cd extras; $(CVS) co -kk -r tikal_coupler_ogrp -P -d SIS ice_sis
 extras/SIS2: | extras
 	cd extras; git clone git@github.com:CommerceGov/NOAA-GFDL-SIS2.git SIS2
 extras/LM2: | extras
 	mkdir -p $@
-	cd $@; $(CVS) co -kk -r tikal -P land_lad land_param
+	cd $@; $(CVS) co -kk -r $(FMS_tag) -P land_lad land_param
 extras/LM3: | extras
 	mkdir -p $@
-	cd $@; $(CVS) co -kk -r tikal -P land_lad2 land_param
-	cd $@; $(CVS) up -r tikal_gfort_slm land_lad2/{canopy_air/cana_tile,glacier/glac_tile,lake/lake_tile,river/river,soil/soil_tile,soil/uptake,vegetation/vegn_cohort,vegetation/vegn_dynamics,vegetation/vegn_photosynthesis,vegetation/vegn_radiation,vegetation/vegn_tile,land_model,canopy_air/canopy_air,glacier/glacier,lake/lake,soil/soil,vegetation/vegetation}.F90
+	cd $@; $(CVS) co -kk -r $(FMS_tag) -P land_lad2 land_param
+#	cd $@; $(CVS) up -r tikal_gfort_slm land_lad2/{canopy_air/cana_tile,glacier/glac_tile,lake/lake_tile,river/river,soil/soil_tile,soil/uptake,vegetation/vegn_cohort,vegetation/vegn_dynamics,vegetation/vegn_photosynthesis,vegetation/vegn_radiation,vegetation/vegn_tile,land_model,canopy_air/canopy_air,glacier/glacier,lake/lake,soil/soil,vegetation/vegetation}.F90
 	find $@/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I ./shared/include -o '{}'.cpp {} \;
 	find $@/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
 	find $@/land_lad2 -type f -name \*.F90 -exec rename .F90 .F90_preCPP {} \;
