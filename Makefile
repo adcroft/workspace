@@ -153,10 +153,11 @@ help:
 	@echo ' make COMPILER=pathscale   (or pgi, or intel)'
 	@echo ' make EXEC_MODE=debug      (or prod, or repro)'
 	@echo 'Specific targets:                                         ** BATCH nodes only **\n' $(foreach dir,$(EXPTS),'make MOM6/examples/$(dir)/timestats\n')
-status: # Check CVS status of $(TIMESTATS)
+status: # Check git status of $(TIMESTATS)
 	@cd MOM6; git status -- $(subst MOM6/,,$(TIMESTATS))
 	@echo ==================================================================
 	@cd MOM6; git status -s -- $(subst MOM6/,,$(TIMESTATS))
+	@find MOM6/examples/ -name stderr.out -exec grep -H 'WARNING' {} \;
 	@find MOM6/examples/ -name stderr.out -exec grep -H 'diag_util_mod::opening_file' {} \;
 force: cleantimestats
 	@make all
@@ -184,7 +185,8 @@ checkout: MOM6 shared extras/coupler extras/ice_param extras/SIS extras/SIS2 ext
 MOM6:
 	git clone --recursive git@github.com:CommerceGov/NOAA-GFDL-MOM6.git MOM6
 shared:
-	$(CVS) co -kk -r $(FMS_tag) -P shared
+	git clone git@github.com:CommerceGov/NOAA-GFDL-FMS.git shared
+#	$(CVS) co -kk -r $(FMS_tag) -P shared
 #	cvs up -r tikal_group_update_fix_z1l shared/mpp/include/{mpp_domains_misc.inc,mpp_domains_util.inc,mpp_group_update.h}
 #	cvs up -r tikal_group_update_fix_z1l shared/mpp/{mpp_domains.F90,test_mpp_domains.F90}
 #	cd shared/; cvs up -r rms_sdu diag_manager
@@ -621,7 +623,7 @@ $(foreach cmp,$(COMPILERS),MOM6/examples/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_1de
 define run-model-to-make-timestats
 echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
-@rm -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats} $@
+@rm -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats,time_stamp.out} $@
 set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
 @mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
