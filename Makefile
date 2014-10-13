@@ -196,7 +196,7 @@ package:
 #	tar zcvf $(FMS_tag).tgz shared extras/{SIS,*null,coupler/*,ice_param} site bin
 
 # This section defines how to checkout and layout the source code
-checkout: $(MOM6_examples) shared extras/coupler extras/ice_param $(SIS1) $(LM2) $(LM3) $(AM2) site bin
+checkout: $(MOM6_EXAMPLES) extras/coupler extras/ice_param $(SIS1) $(LM2) $(LM3) $(AM2) site bin
 $(MOM6_EXAMPLES):
 	git clone --recursive git@github.com:CommerceGov/NOAA-GFDL-MOM6-examples.git $(MOM6_EXAMPLES)
 extras:
