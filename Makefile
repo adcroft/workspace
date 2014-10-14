@@ -22,7 +22,7 @@ AM2_SIS_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_LM2_SIS/$(dir))
 AM2_LM3_SIS_EXPTS=$(foreach dir,AM2_MOM6i_1deg,coupled_AM2_LM3_SIS/$(dir))
 AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2B_MOM6i_1deg AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
 EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(AM2_SIS_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS)
-EXPT_EXECS=ocean_only ocean_only_symmetric ice_ocean_SIS ice_ocean_SIS2 coupled_AM2_LM2_SIS coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
+EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_AM2_LM2_SIS coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #For non-GFDL users: CVS=cvs -d /ncrc/home2/fms/cvs
 #For GFDL users: CVS=cvs -d :ext:cvs.princeton.rdhpcs.noaa.gov:/home/fms/cvs
 #For when certificates are down: CVS=cvs -d :ext:gfdl:/home/fms/cvs
@@ -121,7 +121,7 @@ debug: $(BUILD_DIR)/$(COMPILER)/shared/debug/libfms.a $(foreach exec,$(EXPT_EXEC
 prod: $(foreach exec,$(EXPT_EXECS),$(BUILD_DIR)/$(exec).$(COMPILER).prod/MOM6)
 ale: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
 solo: $(BUILD_DIR)/$(COMPILER)/ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(SOLO_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
-symmetric: $(BUILD_DIR)/$(COMPILER)/ocean_only_symmetric/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
+symmetric: $(BUILD_DIR)/$(COMPILER)/symmetric_ocean_only/$(EXEC_MODE)/MOM6 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
 sis: $(BUILD_DIR)/$(COMPILER)/ice_ocean_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
 sis2: $(BUILD_DIR)/$(COMPILER)/ice_ocean_SIS2/$(EXEC_MODE)/MOM6 $(foreach dir,$(SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
 am2: $(BUILD_DIR)/$(COMPILER)/coupled_AM2_LM2_SIS/$(EXEC_MODE)/MOM6 $(foreach dir,$(AM2_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
@@ -345,8 +345,8 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/ocean_only/$(mode)/MOM6): $(foreach dir,$
 
 # Symmetric executable
 SOLOSYM_PTH=$(MOM6)/config_src/dynamic_symmetric $(MOM6)/config_src/solo_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/
-$(foreach mode,$(MODES),$(BUILD_DIR)/%/ocean_only_symmetric/$(mode)/MOM6): SRCPTH=$(SOLOSYM_PTH)
-$(foreach mode,$(MODES),$(BUILD_DIR)/%/ocean_only_symmetric/$(mode)/MOM6): $(foreach dir,$(SOLOSYM_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_ocean_only/$(mode)/MOM6): SRCPTH=$(SOLOSYM_PTH)
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/symmetric_ocean_only/$(mode)/MOM6): $(foreach dir,$(SOLOSYM_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # SIS executable
@@ -413,7 +413,7 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(
 # Rules to associated an executable to each experiment #########################
 # (implemented by makeing the executable the FIRST pre-requisite)
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.gnu): $(BUILD_DIR)/gnu/ocean_only/$(EXEC_MODE)/MOM6
-$(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.gnu): $(BUILD_DIR)/gnu/ocean_only_symmetric/$(EXEC_MODE)/MOM6
+$(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.gnu): $(BUILD_DIR)/gnu/symmetric_ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.gnu): $(BUILD_DIR)/gnu/ice_ocean_SIS/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.gnu): $(BUILD_DIR)/gnu/ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(AM2_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.gnu): $(BUILD_DIR)/gnu/coupled_AM2_LM2_SIS/$(EXEC_MODE)/MOM6
@@ -421,7 +421,7 @@ $(foreach dir,$(AM2_LM3_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.gnu): $(BUI
 $(foreach dir,$(AM2_LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.gnu): $(BUILD_DIR)/gnu/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
 
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.intel): $(BUILD_DIR)/intel/ocean_only/$(EXEC_MODE)/MOM6
-$(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.intel): $(BUILD_DIR)/intel/ocean_only_symmetric/$(EXEC_MODE)/MOM6
+$(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.intel): $(BUILD_DIR)/intel/symmetric_ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.intel): $(BUILD_DIR)/intel/ice_ocean_SIS/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.intel): $(BUILD_DIR)/intel/ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(AM2_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.intel): $(BUILD_DIR)/intel/coupled_AM2_LM2_SIS/$(EXEC_MODE)/MOM6
@@ -429,7 +429,7 @@ $(foreach dir,$(AM2_LM3_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.intel): $(B
 $(foreach dir,$(AM2_LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.intel): $(BUILD_DIR)/intel/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
 
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.pgi): $(BUILD_DIR)/pgi/ocean_only/$(EXEC_MODE)/MOM6
-$(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.pgi): $(BUILD_DIR)/pgi/ocean_only_symmetric/$(EXEC_MODE)/MOM6
+$(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.pgi): $(BUILD_DIR)/pgi/symmetric_ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.pgi): $(BUILD_DIR)/pgi/ice_ocean_SIS/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.pgi): $(BUILD_DIR)/pgi/ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(AM2_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.pgi): $(BUILD_DIR)/pgi/coupled_AM2_LM2_SIS/$(EXEC_MODE)/MOM6
