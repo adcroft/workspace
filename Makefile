@@ -338,7 +338,7 @@ mkdir -p $(dir $@)
 (cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names )
 (cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.mod .)
 (cd $(dir $@); rm -f MOM6)
-(cd $(dir $@); source ../../env; make LIBS='-L../../shared/repro -lfms' $(MAKEMODE) $(PMAKEOPTS))
+(cd $(dir $@); source ../../env; make LIBS='-L../../shared/$(EXEC_MODE) -lfms' $(MAKEMODE) $(PMAKEOPTS))
 endef
 
 # solo executable
