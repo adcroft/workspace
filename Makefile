@@ -141,15 +141,15 @@ All:
 	make Ale Solo
 	make Sis Sis2
 	$(foreach comp,$(COMPILERS),make $(comp);)
-intel:
+intel: $(BUILD_DIR)/intel/env $(BUILD_DIR)/site
 	make COMPILER=intel
-pathscale:
+pathscale: $(BUILD_DIR)/pathscale/env $(BUILD_DIR)/site
 	make COMPILER=pathscale
-pgi:
+pgi: $(BUILD_DIR)/pgi/env $(BUILD_DIR)/site
 	make COMPILER=pgi
-cray:
+cray: $(BUILD_DIR)/cray/env $(BUILD_DIR)/site
 	make COMPILER=cray
-gnu:
+gnu: $(BUILD_DIR)/gnu/env $(BUILD_DIR)/site
 	make COMPILER=gnu
 help:
 	@echo 'Typical targets:'
