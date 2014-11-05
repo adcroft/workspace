@@ -339,10 +339,9 @@ define build_mom6_executable
 @echo EXEC_MODE=$(EXEC_MODE)
 mkdir -p $(dir $@)
 (cd $(dir $@); rm -f path_names; $(REL_PATH)/$(BIN_DIR)/list_paths ./ $(foreach dir,$(SRCPTH),$(REL_PATH)/$(dir)))
-(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf $(TEMPLATE) -p MOM6 -c $(CPPDEFS) path_names )
-(cd $(dir $@); ln -sf ../../shared/$(EXEC_MODE)/*.mod .)
+(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf $(TEMPLATE) -o '-I../../shared/$(EXEC_MODE)' -p 'MOM6 -L../../shared/$(EXEC_MODE) -lfms' -c $(CPPDEFS) path_names )
 (cd $(dir $@); rm -f MOM6)
-(cd $(dir $@); source ../../env; make LIBS='-L../../shared/$(EXEC_MODE) -lfms' $(MAKEMODE) $(PMAKEOPTS))
+(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) MOM6)
 endef
 
 # solo executable
