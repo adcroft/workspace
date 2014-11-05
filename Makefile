@@ -264,16 +264,16 @@ $(BIN_DIR):
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory
-$(BUILD_DIR)/gnu/%/MOM6 $(BUILD_DIR)/gnu/%/libfms.a: override COMPILER:=gnu
-$(BUILD_DIR)/intel/%/MOM6 $(BUILD_DIR)/intel/%/libfms.a: override COMPILER:=intel
-$(BUILD_DIR)/pgi/%/MOM6 $(BUILD_DIR)/pgi/%/libfms.a: override COMPILER:=pgi
-#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/gnu/$(cfg)/%/MOM6) $(BUILD_DIR)/gnu/shared/repro/libfms.a: override COMPILER:=gnu
-#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/intel/$(cfg)/%/MOM6) $(BUILD_DIR)/intel/shared/repro/libfms.a: override COMPILER:=intel
-#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/pgi/$(cfg)/%/MOM6) $(BUILD_DIR)/pgi/shared/repro/libfms.a: override COMPILER:=pgi
+$(BUILD_DIR)/gnu/%/MOM6 $(BUILD_DIR)/gnu/%/libfms.a: COMPILER=gnu
+$(BUILD_DIR)/intel/%/MOM6 $(BUILD_DIR)/intel/%/libfms.a: COMPILER=intel
+$(BUILD_DIR)/pgi/%/MOM6 $(BUILD_DIR)/pgi/%/libfms.a: COMPILER=pgi
+#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/gnu/$(cfg)/%/MOM6) $(BUILD_DIR)/gnu/shared/repro/libfms.a: COMPILER=gnu
+#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/intel/$(cfg)/%/MOM6) $(BUILD_DIR)/intel/shared/repro/libfms.a: COMPILER=intel
+#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/pgi/$(cfg)/%/MOM6) $(BUILD_DIR)/pgi/shared/repro/libfms.a: COMPILER=pgi
 # Set REPRO and DEBUG variables based on the build directory
-%/prod/MOM6 %/prod/libfms.a: override EXEC_MODE:=prod
-%/repro/MOM6 %/repro/libfms.a: override EXEC_MODE:=repro
-%/debug/MOM6 %/debug/libfms.a: override EXEC_MODE:=debug
+%/prod/MOM6 %/prod/libfms.a: EXEC_MODE=prod
+%/repro/MOM6 %/repro/libfms.a: EXEC_MODE=repro
+%/debug/MOM6 %/debug/libfms.a: EXEC_MODE=debug
 %/repro/libfms.a %/repro/MOM6: MAKEMODE+=REPRO=1
 %/debug/libfms.a %/debug/MOM6: MAKEMODE+=DEBUG=1
 
