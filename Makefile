@@ -114,6 +114,10 @@ all:
 	@echo $(ALLMESG)
 	@echo targets = $(ALLTARGS)
 	@time make $(ALLTARGS)
+ALL:
+	make gnu
+	make intel
+	make pgi
 
 buildall: $(MODES)
 repro: $(foreach exec,$(EXPT_EXECS),$(BUILD_DIR)/$(COMPILER)/$(exec)/repro/MOM6)
