@@ -2,6 +2,7 @@ ALE_EXPTS=$(foreach dir, \
           resting/z \
           single_column_z sloshing/rho sloshing/z \
           SCM_idealized_hurricane \
+          SCM_KPP_tests \
           adjustment2d/z adjustment2d/rho \
           seamount/z seamount/sigma \
           flow_downslope/z flow_downslope/rho flow_downslope/sigma \
@@ -453,6 +454,9 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/single_column_z/timestats
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/timestats.$(cmp)): NPES=1
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/SCM_KPP_tests/timestats.$(cmp)): NPES=1
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/SCM_KPP_tests/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/SCM_KPP_tests/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/circle_obcs/timestats.$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/circle_obcs/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/circle_obcs/$(fl))
