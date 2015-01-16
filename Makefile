@@ -73,6 +73,7 @@ CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERS
 SITE=ncrc
 MAKEMODE=NETCDF=4 OPENMP=1
 MAKEMODE=NETCDF=4
+MAKEMODE=
 MODES=repro prod debug
 COMPILERS=intel pathscale pgi cray gnu
 COMPILERS=gnu intel pgi
