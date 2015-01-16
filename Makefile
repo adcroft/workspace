@@ -213,6 +213,8 @@ package:
 	tar zcvf $(BIN_tag).tgz $(SITE_DIR) $(BIN_DIR)
 	tar zcvf SIS_$(FMS_tag).tgz extras/{SIS,*null,coupler/*,ice_param}
 #	tar zcvf $(FMS_tag).tgz shared extras/{SIS,*null,coupler/*,ice_param} site bin
+sync:
+	rsync -rtvim --exclude RESTART/ --exclude tools/ --exclude build/ --include '*/' --include \*.nc --exclude \* $(EXPT)/ gfdl:/local2/home/workspace/$(EXPT)/
 
 # This section defines how to checkout and layout the source code
 checkout: $(MOM6_EXAMPLES) $(COUPLER) $(ICE_PARAM) $(ATMOS_NULL) $(LAND_NULL) $(SIS1) $(LM3) $(AM2) $(SITE_DIR) $(BIN_DIR)
