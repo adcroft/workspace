@@ -177,6 +177,7 @@ help:
 	@echo ' make coupled   - build/run the coupled CM2G3L experiments'
 	@echo ' make status    - check CVS status of expts list in EXPTS variable'
 	@echo ' make cleancore - cleans up core dumps and truncation files'
+	@echo ' make doxMOM6   - generates doxygen html files in src/MOM6/html'
 	@echo ' make all'
 	@echo ' make force'
 	@echo ' make clean'
@@ -219,6 +220,13 @@ package:
 #	tar zcvf $(FMS_tag).tgz shared extras/{SIS,*null,coupler/*,ice_param} site bin
 sync:
 	rsync -rtvim --exclude RESTART/ --exclude tools/ --exclude build/ --include '*/' --include \*.nc --exclude \* $(EXPT)/ gfdl:/local2/home/workspace/$(EXPT)/
+doxMOM6: MOM6-examples/src/MOM6/html/index.html
+MOM6-examples/src/MOM6/html/index.html: MOM6-examples/src/MOM6/doxygen $(MOM6)/config_src/*/* $(MOM6)/src/*/* $(MOM6)/src/*/*/*
+	(cd $(<D); ./doxygen/bin/doxygen .doxygen)
+MOM6-examples/src/MOM6/doxygen:
+	(cd $(@D); git clone https://github.com/doxygen/doxygen)
+	(cd $(@); ./configure)
+	(cd $(@); make)
 
 # This section defines how to checkout and layout the source code
 checkout: $(MOM6_EXAMPLES) $(COUPLER) $(ICE_PARAM) $(ATMOS_NULL) $(LAND_NULL) $(SIS1) $(LM3) $(AM2) $(SITE_DIR) $(BIN_DIR)
