@@ -80,8 +80,8 @@ COMPILERS=gnu intel pgi
 
 GOLD_tag=GOLD_ogrp
 MOM6_tag=dev/master
-FMS_tag=tikal_201409
-ICE_tag=tikal_201409
+FMS_tag=ulm
+SIS1_tag=ulm
 BIN_tag=fre-commands-bronx-7
 
 # Default compiler configuration
@@ -235,14 +235,14 @@ $(MOM6_EXAMPLES) $(FMS) (SIS2):
 $(EXTRAS):
 	mkdir -p $@
 $(COUPLER): | $(EXTRAS)
-	cd $(@D); git clone git@gitlab.gfdl.noaa.gov:coupler_devel/coupler.git
+	cd $(@D); git clone git@gitlab.gfdl.noaa.gov:fms/coupler.git
 $(ICE_PARAM) $(LAND_NULL): | $(EXTRAS)
 	cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F)
 $(ATMOS_NULL): | $(EXTRAS)
 	cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F)
 	cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_param/diag_integral atmos_param/monin_obukhov
 $(SIS1): | $(EXTRAS)
-	cd $(@D); $(CVS) co -kk -r tikal_coupler_ogrp -P -d $(@F) ice_sis
+	cd $(@D); $(CVS) co -kk -r $(SIS1_tag) -P -d $(@F) ice_sis
 $(LM3): | $(EXTRAS)
 	mkdir -p $@
 	cd $@; $(CVS) co -kk -r $(FMS_tag) -P land_lad2 land_param
