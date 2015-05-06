@@ -2,7 +2,8 @@ ALE_EXPTS=$(foreach dir, \
           resting/z \
           single_column/KPP sloshing/rho sloshing/z \
           SCM_idealized_hurricane \
-          CVmix_SCM_tests/wind_only/KPP CVmix_SCM_tests/skin_warming_wind/KPP \
+          CVmix_SCM_tests/mech_only/KPP CVmix_SCM_tests/wind_only/KPP \
+          CVmix_SCM_tests/skin_warming_wind/KPP CVmix_SCM_tests/cooling_only/KPP \
           adjustment2d/z adjustment2d/rho \
           seamount/z seamount/sigma \
           flow_downslope/z flow_downslope/rho flow_downslope/sigma \
@@ -12,6 +13,8 @@ ALE_EXPTS=$(foreach dir, \
 
 SOLO_EXPTS=$(foreach dir, \
           resting/layer \
+          CVmix_SCM_tests/mech_only/BML CVmix_SCM_tests/wind_only/BML \
+          CVmix_SCM_tests/skin_warming_wind/BML CVmix_SCM_tests/cooling_only/BML \
           torus_advection_test lock_exchange external_gwave single_column/BML \
           sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
           double_gyre DOME benchmark global nonBous_global Phillips_2layer \
@@ -480,11 +483,29 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/single_column/KPP/timesta
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/timestats.$(cmp)): NPES=1
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/$(fl))
 
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/mech_only/KPP/timestats.$(cmp)): NPES=1
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/mech_only/KPP/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/mech_only/KPP/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/mech_only/BML/timestats.$(cmp)): NPES=1
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/mech_only/BML/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/mech_only/BML/$(fl))
+
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/wind_only/KPP/timestats.$(cmp)): NPES=1
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/wind_only/KPP/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/wind_only/KPP/$(fl))
 
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/wind_only/BML/timestats.$(cmp)): NPES=1
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/wind_only/BML/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/wind_only/BML/$(fl))
+
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/skin_warming_wind/KPP/timestats.$(cmp)): NPES=1
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/skin_warming_wind/KPP/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/skin_warming_wind/KPP/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/skin_warming_wind/BML/timestats.$(cmp)): NPES=1
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/skin_warming_wind/BML/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/skin_warming_wind/BML/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/cooling_only/KPP/timestats.$(cmp)): NPES=1
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/cooling_only/KPP/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/cooling_only/KPP/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/cooling_only/BML/timestats.$(cmp)): NPES=1
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/cooling_only/BML/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/CVmix_SCM_tests/cooling_only/BML/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/circle_obcs/timestats.$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/circle_obcs/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/circle_obcs/$(fl))
