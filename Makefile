@@ -35,6 +35,7 @@ EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_
 #For GFDL users: CVS=cvs -d :ext:cvs.princeton.rdhpcs.noaa.gov:/home/fms/cvs
 #For when certificates are down: CVS=cvs -d :ext:gfdl:/home/fms/cvs
 #CVS=cvs -d :ext:gfdl:/home/fms/cvs
+#CVS=cvs -d /home/fms/cvs
 CVS=cvs -d :ext:cvs.princeton.rdhpcs.noaa.gov:/home/fms/cvs
 
 # Name of MOM6-examples directory
@@ -78,11 +79,14 @@ CPPDEFS="-Duse_libMPI -Duse_netCDF"
 CPPDEFS="-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS"
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
-# SITE can be ncrc, hpcs or doe
+# SITE can be ncrc, hpcs, doe, gfdl-ws
 SITE=ncrc
+# MPIRUN can be aprun or mpirun
+MPIRUN=aprun
+# MAKEMODE can have either NETCDF=3, NETCDF=4 or OPENMP=1
 MAKEMODE=NETCDF=4 OPENMP=1
 MAKEMODE=NETCDF=4
-MAKEMODE=
+MAKEMODE=NETCDF=3
 MODES=repro prod debug
 COMPILERS=intel pathscale pgi cray gnu
 COMPILERS=gnu intel pgi
@@ -638,7 +642,7 @@ define run-model-to-make-timestats
 echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
 @rm -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats,time_stamp.out} $@
-set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time aprun -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
+set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
 @mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
 @mv $(dir $@)timestats $@
