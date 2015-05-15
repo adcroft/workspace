@@ -326,6 +326,13 @@ $(BUILD_DIR)/pathscale/env:
 $(BUILD_DIR)/intel/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
+ifeq ($(SITE),gfdl-ws)
+	@echo module load ifort/11.1.073 > $@
+	@echo module load intel_compilers >>$@
+	@echo module use /home/sdu/publicmodules >>$@
+	@echo module load netcdf/4.2 >>$@
+	@echo module load mpich2/1.5b1 >>$@
+else
 	@echo module unload PrgEnv-pgi > $@
 	@echo module unload PrgEnv-pathscale >> $@
 	@echo module unload PrgEnv-intel >> $@
@@ -334,6 +341,7 @@ $(BUILD_DIR)/intel/env:
 	@echo module load PrgEnv-intel/4.0.46 >> $@
 	@echo module switch intel intel/12.0.5.220 >> $@
 	@echo module load netcdf/4.2.0 >> $@
+endif
 $(BUILD_DIR)/cray/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
