@@ -248,7 +248,7 @@ $(MOM6_EXAMPLES) $(FMS) (SIS2):
 $(EXTRAS):
 	mkdir -p $@
 $(COUPLER): | $(EXTRAS)
-	cd $(@D); git clone git@gitlab.gfdl.noaa.gov:fms/coupler.git
+	cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/coupler.git
 $(ICE_PARAM) $(LAND_NULL): | $(EXTRAS)
 	cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F)
 $(ATMOS_NULL): | $(EXTRAS)
