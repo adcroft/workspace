@@ -62,6 +62,11 @@ git status
 
 # Working on the GFDL workstations
 
+Checkout
+```bash
+make CVS='cvs -d /home/fms/cvs' SITE=gfdl-ws checkout
+```
+
 Compile:
 ```bash
 make SITE=gfdl-ws FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/build/intel/ocean_only/repro/MOM6

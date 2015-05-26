@@ -110,9 +110,9 @@ TIMESTATS=$(foreach dir,$(EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
 .SECONDARY:
 
 CP=ln -sf
-UCP=cp -u
 LN=ln -sf
 LN=ln -s
+RM=\rm
 SHELL=tcsh
 
 # The "all" target depends on which set of nodes we are on...
@@ -212,19 +212,19 @@ status: # Check git status of $(TIMESTATS)
 force: cleantimestats
 	@make all
 cleantimestats:
-	rm -f $(TIMESTATS)
+	$(RM) -f $(TIMESTATS)
 clean:
 	@$(foreach dir,$(wildcard $(BUILD_DIR)/*), (cd $(dir); make clean); )
-	find $(BUILD_DIR)/* -type l -exec rm {} \;
-	find $(BUILD_DIR)/* -name '*.mod' -exec rm {} \;
+	find $(BUILD_DIR)/* -type l -exec $(RM) {} \;
+	find $(BUILD_DIR)/* -name '*.mod' -exec $(RM) {} \;
 Clean: clean cleancore
-	-rm -f $(MOM6_EXAMPLES)/{*,*/*,*/*/*}/*.nc.*
-	-rm -f $(MOM6_EXAMPLES)/{*,*/*,*/*/*}/*.{nc,out}
-	-rm -rf $(MOM6_EXAMPLES)/{*,*/*}/RESTART
-	-rm -f $(MOM6_EXAMPLES)/{*,*/*}/{fort.*,*.nml,timestats,CPU_stats,exitcode,available_diags.*}
+	-$(RM) -f $(MOM6_EXAMPLES)/{*,*/*,*/*/*}/*.nc.*
+	-$(RM) -f $(MOM6_EXAMPLES)/{*,*/*,*/*/*}/*.{nc,out}
+	-$(RM) -rf $(MOM6_EXAMPLES)/{*,*/*}/RESTART
+	-$(RM) -f $(MOM6_EXAMPLES)/{*,*/*}/{fort.*,*.nml,timestats,CPU_stats,exitcode,available_diags.*}
 cleancore:
-	-find $(MOM6_EXAMPLES)/ -name core -type f -exec rm {} \;
-	-find $(MOM6_EXAMPLES)/ -name "*truncations" -type f -exec rm {} \;
+	-find $(MOM6_EXAMPLES)/ -name core -type f -exec $(RM) {} \;
+	-find $(MOM6_EXAMPLES)/ -name "*truncations" -type f -exec $(RM) {} \;
 backup: Clean
 	tar zcvf ~/MOM6_backup.tgz MOM6
 package:
@@ -265,7 +265,7 @@ $(LM3): | $(EXTRAS)
 $(AM2): | $(EXTRAS)
 	mkdir -p $@
 	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_coupled atmos_fv_dynamics atmos_param_am3 atmos_shared)
-	rm -rf $@/atmos_fv_dynamics/driver/solo
+	$(RM) -rf $@/atmos_fv_dynamics/driver/solo
 extras/AM4: | extras
 	mkdir -p $@
 	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_coupled cubed_sphere_coupled atmos_param_am3 atmos_shared)
@@ -370,9 +370,9 @@ define build_mom6_executable
 @echo MAKEMODE=$(MAKEMODE)
 @echo EXEC_MODE=$(EXEC_MODE)
 mkdir -p $(dir $@)
-(cd $(dir $@); rm -f path_names; $(REL_PATH)/$(BIN_DIR)/list_paths ./ $(foreach dir,$(SRCPTH),$(REL_PATH)/$(dir)))
+(cd $(dir $@); $(RM) -f path_names; $(REL_PATH)/$(BIN_DIR)/list_paths ./ $(foreach dir,$(SRCPTH),$(REL_PATH)/$(dir)))
 (cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf $(TEMPLATE) -o '-I../../shared/$(EXEC_MODE)' -p 'MOM6 -L../../shared/$(EXEC_MODE) -lfms' -c $(CPPDEFS) path_names )
-(cd $(dir $@); rm -f MOM6)
+(cd $(dir $@); $(RM) -f MOM6)
 (cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) MOM6)
 endef
 
@@ -442,10 +442,10 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(
 	@mkdir -p $(dir $@)
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo EXEC_MODE=$(EXEC_MODE)
-	(cd $(dir $@); rm path_names; $(REL_PATH)/$(BIN_DIR)/list_paths $(REL_PATH)/$(FMS))
+	(cd $(dir $@); $(RM) path_names; $(REL_PATH)/$(BIN_DIR)/list_paths $(REL_PATH)/$(FMS))
 	(cd $(dir $@); mv path_names path_names.orig; egrep -v "coupler" path_names.orig > path_names)
 	(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf $(TEMPLATE) -p libfms.a -c $(CPPDEFS) path_names)
-	(cd $(dir $@); rm -f libfms.a)
+	(cd $(dir $@); $(RM) -f libfms.a)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
 #(cd $(dir $@); mv path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
 
@@ -493,6 +493,9 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/single_column/BML/timesta
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/single_column/KPP/timestats.$(cmp)): NPES=1
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/single_column/KPP/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override MOM_override2,$(MOM6_EXAMPLES)/ocean_only/single_column/KPP/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/single_column/EPBL/timestats.$(cmp)): NPES=1
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/single_column/EPBL/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override MOM_override2,$(MOM6_EXAMPLES)/ocean_only/single_column/EPBL/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/timestats.$(cmp)): NPES=1
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/timestats.$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/SCM_idealized_hurricane/$(fl))
@@ -648,8 +651,8 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_
 # Canned rule to run all experiments
 define run-model-to-make-timestats
 echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
-@cd $(dir $@); rm -rf RESTART; mkdir -p RESTART
-@rm -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats,time_stamp.out} $@
+@cd $(dir $@); $(RM) -rf RESTART; mkdir -p RESTART
+@$(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats,time_stamp.out} $@
 set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
 @mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
@@ -667,4 +670,4 @@ $(BIN_DIR)/git-version-string:
 	mkdir -p $(@D)
 	cd $(@D); $(CVS) co -kk -r git_tools_sdu fre-commands
 	cd $(@D); cp fre-commands/bin/git-version-string .
-	cd $(@D); rm -rf CVS fre-commands
+	cd $(@D); $(RM) -rf CVS fre-commands
