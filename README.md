@@ -70,6 +70,7 @@ git clone git@github.com:adcroft-gfdl/workspace.git workspace
 Checkout:
 ```bash
 make CVS='cvs -d /home/fms/cvs' SITE=gfdl-ws checkout
+make SITE=gfdl-ws MOM6-examples/build/intel/env
 ```
 
 Compile:
