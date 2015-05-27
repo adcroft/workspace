@@ -285,6 +285,11 @@ $(SITE_DIR):
 $(BIN_DIR):
 	mkdir -p $(@D)
 	cd $(@D); $(CVS) co -r $(BIN_tag) -P -d bin bin-pub
+wiki: wiki.MOM6-examples wiki.MOM6
+wiki.MOM6-examples:
+	git clone git@github.com:NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
+wiki.MOM6:
+	git clone git@github.com:NOAA-GFDL/MOM6.wiki.git wiki.MOM6
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory
