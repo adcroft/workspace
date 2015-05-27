@@ -244,7 +244,7 @@ MOM6-examples/src/MOM6/doxygen:
 # This section defines how to checkout and layout the source code
 checkout: $(MOM6_EXAMPLES) $(COUPLER) $(ICE_PARAM) $(ATMOS_NULL) $(LAND_NULL) $(SIS1) $(LM3) $(AM2) $(SITE_DIR) $(BIN_DIR)
 $(MOM6_EXAMPLES) $(FMS) (SIS2):
-	git clone --recursive git@github.com:CommerceGov/NOAA-GFDL-MOM6-examples.git $(MOM6_EXAMPLES)
+	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
 $(EXTRAS):
 	mkdir -p $@
 $(COUPLER): | $(EXTRAS)
