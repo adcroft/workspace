@@ -1,6 +1,7 @@
 ALE_EXPTS=$(foreach dir, \
           resting/z \
-          single_column/KPP sloshing/rho sloshing/z \
+          single_column/KPP single_column/EPBL \
+          sloshing/rho sloshing/z \
           SCM_idealized_hurricane \
           CVmix_SCM_tests/mech_only/KPP CVmix_SCM_tests/wind_only/KPP \
           CVmix_SCM_tests/skin_warming_wind/KPP CVmix_SCM_tests/cooling_only/KPP \
