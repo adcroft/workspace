@@ -65,12 +65,14 @@ ICE_PARAM=$(EXTRAS)/ice_param
 ATMOS_NULL=$(EXTRAS)/atmos_null
 # Name of land_null directory
 LAND_NULL=$(EXTRAS)/land_null
-# Location of bin scripts
-BIN_DIR=$(MOM6_EXAMPLES)/build/bin
-# Location of site templats
-SITE_DIR=$(MOM6_EXAMPLES)/build/site
 # Location to build
 BUILD_DIR=$(MOM6_EXAMPLES)/build
+# MKMF package
+MKMF_DIR=$(BUILD_DIR)/mkmf
+# Location of bin scripts
+BIN_DIR=$(MKMF_DIR)/bin
+# Location of site templats
+TEMPLATE_DIR=$(MKMF_DIR)/templates
 # Relative path from compile directory to top
 REL_PATH=../../../../..
 
@@ -101,7 +103,7 @@ BIN_tag=fre-commands-bronx-7
 # Default compiler configuration
 #COMPILER=intel
 EXEC_MODE=repro
-TEMPLATE=-t $(REL_PATH)/$(SITE_DIR)/$(SITE)/$(COMPILER).mk
+TEMPLATE=-t $(REL_PATH)/$(TEMPLATE_DIR)/$(SITE)-$(COMPILER).mk
 NPES=2
 PMAKEOPTS=-l 12.0 -j 12
 PMAKEOPTS=-j
@@ -157,15 +159,15 @@ All:
 	make Ale Solo
 	make Sis Sis2
 	$(foreach comp,$(COMPILERS),make $(comp);)
-intel: $(BUILD_DIR)/intel/env $(BUILD_DIR)/site
+intel: $(BUILD_DIR)/intel/env
 	make COMPILER=intel
-pathscale: $(BUILD_DIR)/pathscale/env $(BUILD_DIR)/site
+pathscale: $(BUILD_DIR)/pathscale/env
 	make COMPILER=pathscale
-pgi: $(BUILD_DIR)/pgi/env $(BUILD_DIR)/site
+pgi: $(BUILD_DIR)/pgi/env
 	make COMPILER=pgi
-cray: $(BUILD_DIR)/cray/env $(BUILD_DIR)/site
+cray: $(BUILD_DIR)/cray/env
 	make COMPILER=cray
-gnu: $(BUILD_DIR)/gnu/env $(BUILD_DIR)/site
+gnu: $(BUILD_DIR)/gnu/env
 	make COMPILER=gnu
 help:
 	@echo 'Typical targets:'
@@ -241,23 +243,23 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); make)
 
 # This section defines how to checkout and layout the source code
-checkout: $(MOM6_EXAMPLES) $(COUPLER) $(ICE_PARAM) $(ATMOS_NULL) $(LAND_NULL) $(SIS1) $(LM3) $(AM2) $(SITE_DIR) $(BIN_DIR)
+checkout: $(MOM6_EXAMPLES) $(COUPLER) $(ICE_PARAM) $(ATMOS_NULL) $(LAND_NULL) $(SIS1) $(LM3) $(AM2) $(TEMPLATE_DIR) $(BIN_DIR)
 $(MOM6_EXAMPLES) $(FMS) (SIS2):
 	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
 $(EXTRAS):
 	mkdir -p $@
 $(COUPLER): | $(EXTRAS)
-	cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/coupler.git
+	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/coupler.git)
 $(ICE_PARAM) $(LAND_NULL): | $(EXTRAS)
-	cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F)
+	(cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F)
 $(ATMOS_NULL): | $(EXTRAS)
-	cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F)
-	cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_param/diag_integral atmos_param/monin_obukhov
+	(cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F))
+	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_param/diag_integral atmos_param/monin_obukhov)
 $(SIS1): | $(EXTRAS)
-	cd $(@D); $(CVS) co -kk -r $(SIS1_tag) -P -d $(@F) ice_sis
+	(cd $(@D); $(CVS) co -kk -r $(SIS1_tag) -P -d $(@F) ice_sis)
 $(LM3): | $(EXTRAS)
 	mkdir -p $@
-	cd $@; $(CVS) co -kk -r $(FMS_tag) -P land_lad2 land_param
+	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P land_lad2 land_param)
 	find $@/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 	find $@/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
 	find $@/land_lad2 -type f -name \*.F90 -exec rename .F90 .F90_preCPP {} \;
@@ -278,12 +280,11 @@ extras/AM4: | extras
 	(cd $@; cvs update -r tikal_pbl_depth_cjg atmos_cubed_sphere/driver/coupled/atmosphere.F90 atmos_cubed_sphere/driver/coupled/fv_physics.F90)
 	(cd $@; git clone git@gitlab.gfdl.noaa.gov:coupler_devel/coupler.git)
 	(cd $@/coupler; git checkout user/nnz/merge_tikal_pbl_depth_cjg)
-$(SITE_DIR):
+$(MKMF_DIR):
 	mkdir -p $(@D)
-	cd $(@D); $(CVS) co -r $(BIN_tag) -P -d site fre/fre-commands/site
-$(BIN_DIR):
-	mkdir -p $(@D)
-	cd $(@D); $(CVS) co -r $(BIN_tag) -P -d bin bin-pub
+	(cd $(@D); git clone git@github.com:NOAA-GFDL/mkmf.git)
+$(BIN_DIR) $(TEMPLATE_DIR): $(MKMF_DIR)
+$(BIN_DIR)/git-version-string: $(BIN_DIR)
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:
 	git clone git@github.com:NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
@@ -295,15 +296,16 @@ wiki.MOM6:
 $(BUILD_DIR)/gnu/%/MOM6 $(BUILD_DIR)/gnu/%/libfms.a: COMPILER=gnu
 $(BUILD_DIR)/intel/%/MOM6 $(BUILD_DIR)/intel/%/libfms.a: COMPILER=intel
 $(BUILD_DIR)/pgi/%/MOM6 $(BUILD_DIR)/pgi/%/libfms.a: COMPILER=pgi
-#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/gnu/$(cfg)/%/MOM6) $(BUILD_DIR)/gnu/shared/repro/libfms.a: COMPILER=gnu
-#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/intel/$(cfg)/%/MOM6) $(BUILD_DIR)/intel/shared/repro/libfms.a: COMPILER=intel
-#$(foreach cfg,$(EXPT_EXECS),$(BUILD_DIR)/pgi/$(cfg)/%/MOM6) $(BUILD_DIR)/pgi/shared/repro/libfms.a: COMPILER=pgi
 # Set REPRO and DEBUG variables based on the build directory
 %/prod/MOM6 %/prod/libfms.a: EXEC_MODE=prod
 %/repro/MOM6 %/repro/libfms.a: EXEC_MODE=repro
 %/debug/MOM6 %/debug/libfms.a: EXEC_MODE=debug
 %/repro/libfms.a %/repro/MOM6: MAKEMODE+=REPRO=1
 %/debug/libfms.a %/debug/MOM6: MAKEMODE+=DEBUG=1
+# env
+$(foreach mode,$(MODES),$(BUILD_DIR)/gnu/shared/$(mode)/libfms.a): $(BUILD_DIR)/gnu/env
+$(foreach mode,$(MODES),$(BUILD_DIR)/intel/shared/$(mode)/libfms.a): $(BUILD_DIR)/intel/env
+$(foreach mode,$(MODES),$(BUILD_DIR)/pgi/shared/$(mode)/libfms.a): $(BUILD_DIR)/pgi/env
 
 # Create module scripts
 envs: $(foreach cmp,$(COMPILERS),$(BUILD_DIR)/$(cmp)/env)
@@ -441,7 +443,7 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/STATIC_GOLD_SIS/$(mode)/MOM6): $(foreach 
 	$(build_mom6_executable)
 
 # libfms.a
-$(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(mode)/libfms.a)): $(FMS) $(foreach dir,$(FMS)/* $(FMS)/*/*,$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BIN_DIR)/git-version-string $(BIN_DIR) $(SITE_DIR)
+$(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(mode)/libfms.a)): $(FMS) $(foreach dir,$(FMS)/* $(FMS)/*/*,$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BIN_DIR)/git-version-string $(TEMPLATE_DIR)
 	@echo; echo Building $@
 	@mkdir -p $(dir $@)
 	@echo MAKEMODE=$(MAKEMODE)
@@ -668,10 +670,3 @@ endef
 %/timestats.gnu: ; $(run-model-to-make-timestats)
 %/timestats.intel: ; $(run-model-to-make-timestats)
 %/timestats.pgi: ; $(run-model-to-make-timestats)
-
-# Special rule to get misc files
-$(BIN_DIR)/git-version-string:
-	mkdir -p $(@D)
-	cd $(@D); $(CVS) co -kk -r git_tools_sdu fre-commands
-	cd $(@D); cp fre-commands/bin/git-version-string .
-	cd $(@D); $(RM) -rf CVS fre-commands
