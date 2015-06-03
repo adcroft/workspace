@@ -110,9 +110,7 @@ TIMESTATS=$(foreach dir,$(EXPTS),$(MOM6_EXAMPLES)/$(dir)/timestats.$(COMPILER))
 # .SECONDARY stops deletiong of targets that were built implicitly
 .SECONDARY:
 
-CP=ln -sf
-LN=ln -sf
-LN=ln -s
+MV=\mv
 RM=\rm
 SHELL=tcsh
 
@@ -449,11 +447,11 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	(cd $(dir $@); $(RM) path_names; $(REL_PATH)/$(BIN_DIR)/list_paths $(REL_PATH)/$(FMS))
-	(cd $(dir $@); mv path_names path_names.orig; egrep -v "coupler" path_names.orig > path_names)
+	(cd $(dir $@); $(MV) path_names path_names.orig; egrep -v "coupler" path_names.orig > path_names)
 	(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf $(TEMPLATE) -p libfms.a -c $(CPPDEFS) path_names)
 	(cd $(dir $@); $(RM) -f libfms.a)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
-#(cd $(dir $@); mv path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
+#(cd $(dir $@); $(MV) path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
 
 # Rules to associated an executable to each experiment #########################
 # (implemented by makeing the executable the FIRST pre-requisite)
@@ -661,9 +659,9 @@ echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @$(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,timestats,seaice.stats,time_stamp.out} $@
 set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
-@mv $(dir $@)std.out $(dir $@)std$(suffix $@).out
-@mv $(dir $@)timestats $@
-@find $(dir $@) -maxdepth 1 -name seaice.stats -exec mv {} $(dir $@)seaice.stats$(suffix $@) \;
+@$(MV) $(dir $@)std.out $(dir $@)std$(suffix $@).out
+@$(MV) $(dir $@)timestats $@
+@find $(dir $@) -maxdepth 1 -name seaice.stats -exec $(MV) {} $(dir $@)seaice.stats$(suffix $@) \;
 @cd $(dir $@); (echo -n 'git status: '; git status -s timestats$(suffix $@)) | sed 's,^,$@: ,'
 @cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'
 endef
