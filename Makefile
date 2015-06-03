@@ -82,7 +82,7 @@ CPPDEFS="-Duse_libMPI -Duse_netCDF"
 CPPDEFS="-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS"
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
-# SITE can be ncrc, hpcs, doe, gfdl-ws
+# SITE can be ncrc, hpcs, doe, linux
 SITE=ncrc
 # MPIRUN can be aprun or mpirun
 MPIRUN=aprun
@@ -332,7 +332,7 @@ $(BUILD_DIR)/pathscale/env:
 $(BUILD_DIR)/intel/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
-ifeq ($(SITE),gfdl-ws)
+ifeq ($(SITE),linux)
 	@echo module load ifort/11.1.073 > $@
 	@echo module load intel_compilers >>$@
 	@echo module use /home/sdu/publicmodules >>$@

@@ -62,30 +62,29 @@ git status
 
 # Working on the GFDL workstations
 
-Obtain Makefile:
+Obtain the Makefile:
 ```bash
 git clone git@github.com:adcroft-gfdl/workspace.git workspace
 ```
 
-Checkout:
+Checkout source code:
 ```bash
-make CVS='cvs -d /home/fms/cvs' SITE=gfdl-ws checkout
-make SITE=gfdl-ws MOM6-examples/build/intel/env
+make CVS='cvs -d /home/fms/cvs' SITE=linux checkout
 ```
 
 Compile:
 ```bash
-make CVS='cvs -d /home/fms/cvs' SITE=gfdl-ws FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/build/intel/ocean_only/repro/MOM6
+make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/build/intel/ocean_only/repro/MOM6
 ```
 
-Run:
+Run (requires the sourcing an "env"):
 ```bash
 source MOM6-examples/build/intel/env
 make MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/timestats.intel
 ```
 
-Compile and run:
+Compile and run in one step:
 ```bash
 source MOM6-examples/build/intel/env
-make SITE=gfdl-ws FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/timestats.intel
+make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/timestats.intel
 ```
