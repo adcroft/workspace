@@ -251,7 +251,7 @@ $(EXTRAS):
 $(COUPLER): | $(EXTRAS)
 	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/coupler.git)
 $(ICE_PARAM) $(LAND_NULL): | $(EXTRAS)
-	(cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F)
+	(cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F))
 $(ATMOS_NULL): | $(EXTRAS)
 	(cd $(@D); $(CVS) co -kk -r $(FMS_tag) -P $(@F))
 	(cd $@; $(CVS) co -kk -r $(FMS_tag) -P atmos_param/diag_integral atmos_param/monin_obukhov)
