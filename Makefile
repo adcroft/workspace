@@ -67,6 +67,7 @@ ATMOS_NULL=$(EXTRAS)/atmos_null
 LAND_NULL=$(EXTRAS)/land_null
 # Location to build
 BUILD_DIR=$(MOM6_EXAMPLES)/build
+#BUILD_DIR=$(MOM6_EXAMPLES)/build-openmp
 # MKMF package
 MKMF_DIR=$(BUILD_DIR)/mkmf
 # Location of bin scripts
@@ -88,6 +89,7 @@ SITE=ncrc
 MPIRUN=aprun
 # MAKEMODE can have either NETCDF=3, NETCDF=4 or OPENMP=1
 MAKEMODE=NETCDF=4 OPENMP=1
+MAKEMODE=NETCDF=3 OPENMP=1
 MAKEMODE=NETCDF=4
 MAKEMODE=NETCDF=3
 MODES=repro prod debug
