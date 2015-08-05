@@ -451,7 +451,6 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(
 	@echo MAKEMODE=$(MAKEMODE)
 	@echo EXEC_MODE=$(EXEC_MODE)
 	(cd $(dir $@); $(RM) path_names; $(REL_PATH)/$(BIN_DIR)/list_paths $(REL_PATH)/$(FMS))
-	(cd $(dir $@); $(MV) path_names path_names.orig; egrep -v "coupler" path_names.orig > path_names)
 	(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf $(TEMPLATE) -p libfms.a -c $(CPPDEFS) path_names)
 	(cd $(dir $@); $(RM) -f libfms.a)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
