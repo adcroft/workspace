@@ -25,7 +25,7 @@ SOLO_EXPTS=$(foreach dir, \
 
 SOLO_EXPTS+=ocean_only/MESO_025_63L
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
-SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs OM4_025,ice_ocean_SIS/$(dir))
+SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ice_ocean_SIS/$(dir))
 #SIS_EXPTS+=ice_ocean_SIS/GOLD_SIS_025
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
 AM2_LM3_SIS_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_LM3_SIS/$(dir))
