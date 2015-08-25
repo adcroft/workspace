@@ -1,3 +1,8 @@
+# ALE_EXPTS and SOLO_EXPTS are ocean-only experiments using the ocean_only executable.
+# SIS_EXPTS use the ice_ocean_SIS executable.
+# SIS2_EXPTS use the ice_ocean_SIS2 executable.
+# AM2_LM3_SIS_EXPTS use the coupled_AM2_LM3_SIS executable.
+# AM2_LM3_SIS2_EXPTS use the coupled_AM2_LM3_SIS2 executable.
 ALE_EXPTS=$(foreach dir, \
           resting/z \
           single_column/KPP single_column/EPBL \
@@ -95,7 +100,9 @@ MODES=repro prod debug
 COMPILERS=intel pathscale pgi cray gnu
 COMPILERS=gnu intel pgi
 
+# Version of code
 MOM6_tag=dev/master
+SIS2_tag=dev/master
 FMS_tag=ulm
 
 # Default compiler configuration
@@ -239,6 +246,8 @@ MOM6-examples/src/MOM6/doxygen:
 checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_NULL) $(ATMOS_PARAM) $(LAND_NULL) $(SIS1) $(LM3) $(AM2) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR)
 $(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER):
 	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
+	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
+	(cd $(MOM6_EXAMPLES)/src/SIS2; git checkout $(SIS2_tag))
 $(EXTRAS):
 	mkdir -p $@
 $(ICE_PARAM) $(LAND_NULL) $(ATMOS_PARAM) $(ATMOS_NULL) $(AM2): | $(EXTRAS)
@@ -355,7 +364,7 @@ $(BUILD_DIR)/gnu/env:
 	@echo module load PrgEnv-gnu >> $@
 	@echo module load netcdf/4.2.0 >> $@
 
-# Canned rule to run all experiments
+# Canned rule to run all executables
 define build_mom6_executable
 @echo; echo Building $@
 @echo SRCPTH="$(SRCPTH)"
