@@ -56,7 +56,9 @@ ICEBERGS=$(MOM6_EXAMPLES)/src/icebergs
 # Name of LM3 directory
 LM3=$(EXTRAS)/LM3
 # Name of AM2 directory
-AM2=$(EXTRAS)/atmos_drivers $(EXTRAS)/atmos_fv_dynamics $(EXTRAS)/atmos_shared
+AM2=$(EXTRAS)/AM2
+AM2_REPOS=$(AM2)/atmos_drivers $(AM2)/atmos_fv_dynamics $(AM2)/atmos_shared
+AM2_MODULES=$(AM2)/atmos_drivers/coupled $(AM2)/atmos_fv_dynamics/driver/coupled $(AM2)/atmos_fv_dynamics/model $(AM2)/atmos_fv_dynamics/tools $(AM2)/atmos_shared $(ATMOS_PARAM)
 # Name of coupler directory
 COUPLER=$(EXTRAS)/coupler
 # Name of coupler directory
@@ -79,7 +81,6 @@ BIN_DIR=$(MKMF_DIR)/bin
 TEMPLATE_DIR=$(MKMF_DIR)/templates
 # Relative path from compile directory to top
 REL_PATH=../../../../..
-AM2_MODS=$(EXTRAS)/atmos_drivers/coupled $(EXTRAS)/atmos_fv_dynamics/driver/coupled $(EXTRAS)/atmos_fv_dynamics/model $(EXTRAS)/atmos_fv_dynamics/tools $(EXTRAS)/atmos_shared $(ATMOS_PARAM)
 
 #CPPDEFS="-Duse_libMPI -Duse_netCDF -Duse_LARGEFILE -DSPMD -Duse_shared_pointers -Duse_SGI_GSM -DLAND_BND_TRACERS"
 CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
@@ -243,14 +244,14 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); make)
 
 # This section defines how to checkout and layout the source code
-checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_NULL) $(ATMOS_PARAM) $(LAND_NULL) $(SIS1) $(LM3) $(AM2) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR)
+checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_NULL) $(ATMOS_PARAM) $(LAND_NULL) $(SIS1) $(LM3) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR)
 $(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER):
 	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
 	(cd $(MOM6_EXAMPLES)/src/SIS2; git checkout $(SIS2_tag))
-$(EXTRAS):
+$(EXTRAS) $(AM2):
 	mkdir -p $@
-$(ICE_PARAM) $(LAND_NULL) $(ATMOS_PARAM) $(ATMOS_NULL) $(AM2): | $(EXTRAS)
+$(ICE_PARAM) $(LAND_NULL) $(ATMOS_PARAM) $(ATMOS_NULL) $(AM2_REPOS): | $(EXTRAS)
 	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/$(@F).git)
 	(cd $@; git checkout $(FMS_tag))
 $(SIS1): | $(EXTRAS)
@@ -265,6 +266,7 @@ $(LM3): | $(EXTRAS)
 	find $@/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 	find $@/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
 	find $@/land_lad2 -type f -name \*.F90 -exec rename .F90 .F90_preCPP {} \;
+$(AM2_REPOS): | $(AM2)
 $(MKMF_DIR):
 	mkdir -p $(@D)
 	(cd $(@D); git clone git@github.com:NOAA-GFDL/mkmf.git)
@@ -402,13 +404,13 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): $(foreach d
 	$(build_mom6_executable)
 
 # AM2+LM3+SIS executable
-AM2_LM3_SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS1) $(LM3) $(AM2_MODS) $(FMS)/coupler $(FMS)/include
+AM2_LM3_SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS1) $(LM3) $(AM2_MODULES) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): SRCPTH=$(AM2_LM3_SIS_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): $(foreach dir,$(AM2_LM3_SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # AM2+LM3+SIS2 executable
-AM2_LM3_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS2) $(LM3) $(AM2_MODS) $(FMS)/coupler $(FMS)/include
+AM2_LM3_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS2) $(LM3) $(AM2_MODULES) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): SRCPTH=$(AM2_LM3_SIS2_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): $(foreach dir,$(AM2_LM3_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
