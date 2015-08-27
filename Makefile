@@ -247,13 +247,14 @@ MOM6-examples/src/MOM6/doxygen:
 
 # This section defines how to checkout and layout the source code
 checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_NULL) $(ATMOS_PARAM) $(LAND_NULL) $(SIS1) $(LM3) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR)
-checkout_solo: $(MKMF_DIR)
-	git clone git@github.com:adcroft/MOM6-examples.git $(MOM6_EXAMPLES)
+checkout_minimal:
+	git clone git@github.com:adcroft/MOM6-examples.git
 	(cd $(MOM6_EXAMPLES); git submodule init)
 	(cd $(MOM6_EXAMPLES); git submodule update src/FMS)
 	(cd $(MOM6_EXAMPLES); git submodule update src/MOM6)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule init)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule update)
+	make $(MKMF_DIR)
 $(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER):
 	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
