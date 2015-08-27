@@ -115,6 +115,7 @@ PMAKEOPTS=-j
 
 TIMESTATS=timestats
 STATS_FILES=$(foreach dir,$(EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
+STDERR_LABEL=out
 # .SECONDARY stops deletiong of targets that were built implicitly
 .SECONDARY:
 
@@ -676,7 +677,7 @@ define run-model-to-make-$(TIMESTATS)
 echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); $(RM) -rf RESTART; mkdir -p RESTART
 @$(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,$(TIMESTATS),seaice.stats,time_stamp.out} $@
-set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.out) | sed 's,^,$@: ,'
+set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
 @$(MV) $(dir $@)std.out $(dir $@)std$(suffix $@).out
 @$(MV) $(dir $@)$(TIMESTATS) $@
