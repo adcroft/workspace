@@ -89,6 +89,7 @@ CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
 CPPDEFS="-Duse_libMPI -Duse_netCDF"
 CPPDEFS="-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS"
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
+CPPDEFS='-Dintel14_bug -Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
 # SITE can be ncrc, hpcs, doe, linux
 SITE=ncrc
@@ -361,6 +362,18 @@ $(BUILD_DIR)-intel15/intel/env:
 	@echo module load PrgEnv-intel/4.0.46 >> $@
 	@echo module switch intel intel/15.0.2.164 >> $@
 	@echo module load netcdf/4.2.0 >> $@
+# use with make BUILD_DIR=MOM6-examples/build-intel14 intel
+$(BUILD_DIR)-intel14/intel/env:
+	mkdir -p $(dir $@)
+	@echo Building $@
+	@echo module unload PrgEnv-pgi > $@
+	@echo module unload PrgEnv-pathscale >> $@
+	@echo module unload PrgEnv-intel >> $@
+	@echo module unload PrgEnv-gnu >> $@
+	@echo module unload PrgEnv-cray >> $@
+	@echo module load PrgEnv-intel/5.2.40 >> $@
+	@echo module switch intel intel/14.0.2.144 >> $@
+	@echo module load netcdf/4.3.0 >> $@
 $(BUILD_DIR)/cray/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
