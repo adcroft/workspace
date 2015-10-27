@@ -107,7 +107,7 @@ COMPILERS=gnu intel pgi
 # Version of code
 MOM6_tag=dev/master
 SIS2_tag=dev/master
-FMS_tag=ulm
+FMS_tag=ulm_201510
 
 # Default compiler configuration
 EXEC_MODE=repro
@@ -250,6 +250,14 @@ MOM6-examples/src/MOM6/doxygen:
 
 # This section defines how to checkout and layout the source code
 checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_NULL) $(ATMOS_PARAM) $(LAND_NULL) $(SIS1) $(LM3) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR)
+status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS)
+	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
+	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
+remote_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS)
+	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Remote for dir:; git remote -v'
+update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS)
+	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
+	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; git checkout $(FMS_tag)'
 checkout_minimal:
 	git clone git@github.com:adcroft/MOM6-examples.git
 	(cd $(MOM6_EXAMPLES); git submodule init)
