@@ -249,7 +249,7 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); make)
 
 # This section defines how to checkout and layout the source code
-checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_NULL) $(ATMOS_PARAM) $(LAND_NULL) $(SIS1) $(LM3) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR)
+checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR)
 status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
@@ -266,10 +266,8 @@ checkout_minimal:
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule init)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule update)
 	make $(MKMF_DIR)
-$(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER) $(AMTMOS_NULL) $(LAND_NULL):
+$(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL):
 	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
-	(cd $(MOM6_EXAMPLES); git remote add aja git@github.com:adcroft/MOM6-examples.git)
-	(cd $(MOM6_EXAMPLES); git checkout user/aja/null_modules)
 	(cd $(MOM6_EXAMPLES); git submodule init)
 	(cd $(MOM6_EXAMPLES); git submodule update)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
