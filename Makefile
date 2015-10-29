@@ -250,7 +250,7 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); make)
 
 # This section defines how to checkout and layout the source code
-checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR)
+checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR) $(MOM6_EXAMPLES)/.datasets
 status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
@@ -295,6 +295,8 @@ $(MKMF_DIR):
 	mkdir -p $(@D)
 	(cd $(@D); git clone git@github.com:NOAA-GFDL/mkmf.git)
 $(BIN_DIR) $(TEMPLATE_DIR): $(MKMF_DIR)
+$(MOM6_EXAMPLES)/.datasets: /lustre/f1/pdata/gfdl_O/datasets
+	(cd $(@D); ln -s $< $(@F))
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:
 	git clone git@github.com:NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
