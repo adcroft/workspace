@@ -89,7 +89,6 @@ CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
 CPPDEFS="-Duse_libMPI -Duse_netCDF"
 CPPDEFS="-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS"
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
-CPPDEFS='-Dintel14_bug -Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
 # SITE can be ncrc, hpcs, doe, linux
 SITE=ncrc
@@ -287,7 +286,7 @@ $(LM3): | $(EXTRAS)
 	(cd $@/land_param; git checkout $(LM3_tag))
 	(cd $@; git clone http://gitlab.gfdl.noaa.gov/fms/land_lad2.git)
 	(cd $@/land_lad2; git checkout $(LM3_tag))
-	find $@/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
+	find $@/land_lad2 -type f -name \*.F90 -exec cpp -Dintel14_bug -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 	find $@/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
 	find $@/land_lad2 -type f -name \*.F90 -exec rename .F90 .F90_preCPP {} \;
 $(AM2_REPOS): | $(AM2)
