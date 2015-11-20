@@ -109,7 +109,7 @@ COMPILERS=gnu intel pgi
 MOM6_tag=dev/master
 SIS2_tag=dev/master
 FMS_tag=ulm_201510
-LM3_tag=ulm
+LM3_tag=9359c877e6f27a6292911d55754b3bda5c1091b9
 
 # Default compiler configuration
 EXEC_MODE=repro
