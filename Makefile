@@ -55,6 +55,8 @@ SIS2=$(MOM6_EXAMPLES)/src/SIS2
 ICEBERGS=$(MOM6_EXAMPLES)/src/icebergs
 # Name of LM3 directory
 LM3=$(EXTRAS)/LM3
+LM3_REPOS=$(LM3)/land_param $(LM3)/land_lad2
+LM3_MODULES=$(LM3)/land_param $(LM3)/land_lad2_cpp
 # Name of AM2 directory
 AM2=$(EXTRAS)/AM2
 AM2_REPOS=$(AM2)/atmos_drivers $(AM2)/atmos_fv_dynamics $(AM2)/atmos_shared
@@ -249,15 +251,16 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); make)
 
 # This section defines how to checkout and layout the source code
-checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR) $(MOM6_EXAMPLES)/.datasets
-status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS)
+checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR) $(MOM6_EXAMPLES)/.datasets
+status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
-remote_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS)
+remote_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Remote for dir:; git remote -v'
-update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS)
+update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_param
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; git checkout $(FMS_tag)'
+	cd $(LM3)/land_lad2; git fetch; git checkout $(LM3_tag)
 checkout_minimal:
 	git clone git@github.com:adcroft/MOM6-examples.git
 	(cd $(MOM6_EXAMPLES); git submodule init)
@@ -272,26 +275,25 @@ $(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL):
 	(cd $(MOM6_EXAMPLES); git submodule update)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
 	(cd $(MOM6_EXAMPLES)/src/SIS2; git checkout $(SIS2_tag))
-$(EXTRAS) $(AM2):
+$(EXTRAS) $(AM2) $(LM3):
 	mkdir -p $@
-$(ICE_PARAM) $(ATMOS_PARAM) $(AM2_REPOS): | $(EXTRAS)
+$(ICE_PARAM) $(ATMOS_PARAM) $(AM2_REPOS) $(LM3)/land_param: | $(EXTRAS)
 	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/$(@F).git)
 	(cd $@; git checkout $(FMS_tag))
 $(SIS1): | $(EXTRAS)
 	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/ice_sis.git $(@F))
 	(cd $@; git checkout $(FMS_tag))
-$(LM3): | $(EXTRAS)
-	mkdir -p $@
-	(cd $@; git clone http://gitlab.gfdl.noaa.gov/fms/land_param.git)
-	(cd $@/land_param; git checkout $(LM3_tag))
-	(cd $@; git clone http://gitlab.gfdl.noaa.gov/fms/land_lad2.git)
-	(cd $@/land_lad2; git checkout $(LM3_tag))
+$(LM3)/land_param: | $(LM3)
+$(LM3)/land_lad2: | $(LM3)
+	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/land_lad2.git)
+	(cd $@; git checkout $(LM3_tag))
 	make cppLM3
-cppLM3: $(LM3)
-	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Dintel14_bug -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
+cppLM3: $(LM3_REPOS)
+	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 	find $(LM3)/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
 	mkdir -p $(LM3)/land_lad2_cpp
 	find $(LM3)/land_lad2 -type f -name \*.f90 -exec mv {} $(LM3)/land_lad2_cpp/ \;
+#	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Dintel14_bug -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 $(AM2_REPOS): | $(AM2)
 $(MKMF_DIR):
 	mkdir -p $(@D)
@@ -444,21 +446,21 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/ice_ocean_SIS2/$(mode)/MOM6): $(foreach d
 	$(build_mom6_executable)
 
 # AM2+LM3+SIS executable
-AM2_LM3_SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS1) $(LM3)/{land_param,land_lad2_cpp}/ $(AM2_MODULES) $(FMS)/coupler $(FMS)/include
+AM2_LM3_SIS_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS1) $(LM3_MODULES) $(AM2_MODULES) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): SRCPTH=$(AM2_LM3_SIS_PTH)
-$(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): $(foreach dir,$(AM2_LM3_SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS/$(mode)/MOM6): $(foreach dir,$(AM2_LM3_SIS_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.f90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # AM2+LM3+SIS2 executable
-AM2_LM3_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS2) $(ICEBERGS) $(LM3)/{land_param,land_lad2_cpp}/ $(AM2_MODULES) $(FMS)/coupler $(FMS)/include
+AM2_LM3_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(COUPLER) $(ICE_PARAM) $(SIS2) $(ICEBERGS) $(LM3_MODULES) $(AM2_MODULES) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): SRCPTH=$(AM2_LM3_SIS2_PTH)
-$(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): $(foreach dir,$(AM2_LM3_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM2_LM3_SIS2/$(mode)/MOM6): $(foreach dir,$(AM2_LM3_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.f90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # LM3+SIS2 executable
-LM3_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(COUPLER) $(ICE_OCEAN_EXTRAS) $(SIS2) $(ICEBERGS) $(LM3)/{land_param,land_lad2_cpp}/ $(FMS)/coupler $(FMS)/include
+LM3_SIS2_PTH=$(MOM6)/config_src/dynamic $(MOM6)/config_src/coupled_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/ $(ATMOS_NULL) $(COUPLER) $(ICE_OCEAN_EXTRAS) $(SIS2) $(ICEBERGS) $(LM3_MODULES) $(FMS)/coupler $(FMS)/include
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_LM3_SIS2/$(mode)/MOM6): SRCPTH=$(LM3_SIS2_PTH)
-$(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_LM3_SIS2/$(mode)/MOM6): $(foreach dir,$(LM3_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
+$(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_LM3_SIS2/$(mode)/MOM6): $(foreach dir,$(LM3_SIS2_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.f90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
 
 # AM4+LM3+SIS executable
