@@ -130,7 +130,7 @@ RM=\rm
 SHELL=tcsh
 
 # The "all" target depends on which set of nodes we are on...
-ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c1-batch$(n))),$(HOST))
+ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c3-batch$(n))),$(HOST))
 ALLMESG=On batch nodes: building executables, running experiments
 ALLTARGS=ale solo symmetric sis sis2 am2_sis am2_sis2 lm3_sis2
 else
@@ -336,7 +336,8 @@ $(BUILD_DIR)/pgi/env:
 	@echo module unload PrgEnv-gnu >> $@
 	@echo module unload PrgEnv-cray >> $@
 	@echo module load PrgEnv-pgi >> $@
-	@echo module load netcdf/4.2.0 >> $@
+	@echo module unload netcdf >> $@
+	@echo module load cray-netcdf >> $@
 $(BUILD_DIR)/pathscale/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
@@ -362,9 +363,9 @@ else
 	@echo module unload PrgEnv-intel >> $@
 	@echo module unload PrgEnv-gnu >> $@
 	@echo module unload PrgEnv-cray >> $@
-	@echo module load PrgEnv-intel/4.0.46 >> $@
-	@echo module switch intel intel/12.0.5.220 >> $@
-	@echo module load netcdf/4.2.0 >> $@
+	@echo module load PrgEnv-intel >> $@
+	@echo module unload netcdf >> $@
+	@echo module load cray-netcdf >> $@
 endif
 $(BUILD_DIR)-intel15/intel/env:
 	mkdir -p $(dir $@)
@@ -398,7 +399,7 @@ $(BUILD_DIR)/cray/env:
 	@echo module unload PrgEnv-gnu >> $@
 	@echo module unload PrgEnv-cray >> $@
 	@echo module load PrgEnv-cray >> $@
-	@echo module load netcdf/4.2.0 >> $@
+	@echo module load cray-netcdf >> $@
 $(BUILD_DIR)/gnu/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
@@ -407,8 +408,10 @@ $(BUILD_DIR)/gnu/env:
 	@echo module unload PrgEnv-intel >> $@
 	@echo module unload PrgEnv-gnu >> $@
 	@echo module unload PrgEnv-cray >> $@
+	@echo module load gcc/4.9.3 >> $@
 	@echo module load PrgEnv-gnu >> $@
-	@echo module load netcdf/4.2.0 >> $@
+	@echo module unload netcdf >> $@
+	@echo module load cray-netcdf >> $@
 
 # Canned rule to run all executables
 define build_mom6_executable
