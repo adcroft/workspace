@@ -119,7 +119,7 @@ NPES=2
 PMAKEOPTS=-l 12.0 -j 12
 PMAKEOPTS=-j
 
-TIMESTATS=timestats
+TIMESTATS=ocean.stats
 STATS_FILES=$(foreach dir,$(EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
 STDERR_LABEL=out
 # .SECONDARY stops deletiong of targets that were built implicitly
