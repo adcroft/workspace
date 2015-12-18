@@ -92,7 +92,9 @@ CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
 CPPDEFS="-Duse_libMPI -Duse_netCDF"
 CPPDEFS="-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS"
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DLAND_BND_TRACERS -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
-CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`"'
+STATS_PLATFORM=
+STATS_COMPILER_VER=
+CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\"'
 # SITE can be ncrc, hpcs, doe, linux
 SITE=ncrc
 # MPIRUN can be aprun or mpirun
@@ -731,13 +733,12 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C
 define run-model-to-make-$(TIMESTATS)
 echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); $(RM) -rf RESTART; mkdir -p RESTART
-@$(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats,$(TIMESTATS),seaice.stats,time_stamp.out} $@
+@$(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats.$(suffix $@),$@,seaice.stats.$(suffix $@),time_stamp.out} $@
 set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
 @$(MV) $(dir $@)std.out $(dir $@)std$(suffix $@).out
-@$(MV) $(dir $@)$(TIMESTATS) $@
 @find $(dir $@) -maxdepth 1 -name seaice.stats -exec $(MV) {} $(dir $@)seaice.stats$(suffix $@) \;
-@cd $(dir $@); (echo -n 'git status: '; git status -s $(TIMESTATS)$(suffix $@)) | sed 's,^,$@: ,'
+@cd $(dir $@); (echo -n 'git status: '; git status -s $@) | sed 's,^,$@: ,'
 @cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'
 endef
 %/$(TIMESTATS).gnu: ; $(run-model-to-make-$(TIMESTATS))
