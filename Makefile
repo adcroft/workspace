@@ -740,7 +740,6 @@ echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
 @$(MV) $(dir $@)std.out $(dir $@)std$(suffix $@).out
-@find $(dir $@) -maxdepth 1 -name seaice.stats -exec $(MV) {} $(dir $@)seaice.stats$(suffix $@) \;
 @cd $(dir $@); (echo -n 'git status: '; git status -s $@) | sed 's,^,$@: ,'
 @cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'
 endef
