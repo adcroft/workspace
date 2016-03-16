@@ -15,7 +15,7 @@ ALE_EXPTS=$(foreach dir, \
           adjustment2d/z adjustment2d/rho \
           seamount/z seamount/sigma \
           flow_downslope/z flow_downslope/rho flow_downslope/sigma \
-          global_ALE/z global_ALE/hycom global_ALE/SLight \
+          global_ALE/z global_ALE/hycom \
           mixed_layer_restrat_2d \
           ,ocean_only/$(dir))
 
@@ -25,19 +25,17 @@ SOLO_EXPTS=$(foreach dir, \
           CVmix_SCM_tests/skin_warming_wind/BML CVmix_SCM_tests/cooling_only/BML \
           torus_advection_test lock_exchange external_gwave single_column/BML \
           sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
-          double_gyre DOME benchmark global nonBous_global Phillips_2layer \
+          double_gyre DOME benchmark nonBous_global Phillips_2layer \
           ,ocean_only/$(dir))
 
-SOLO_EXPTS+=ocean_only/MESO_025_63L
+#SOLO_EXPTS+=ocean_only/MESO_025_63L
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
-SIS_EXPTS=$(foreach dir,GOLD_SIS GOLD_SIS_icebergs,ice_ocean_SIS/$(dir))
-#SIS_EXPTS+=ice_ocean_SIS/GOLD_SIS_025
-SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_icebergs SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
+SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
 #SIS2_EXPTS+=$(foreach dir,SIS2 SIS2_icebergs_1 SIS2_icebergs_2 SIS2_icebergs_layout,ice_ocean_SIS2/$(dir))
-AM2_LM3_SIS_EXPTS=$(foreach dir,CM2G63L AM2_MOM6i_1deg,coupled_AM2_LM3_SIS/$(dir))
-AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2B_MOM6i_1deg AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
+AM2_LM3_SIS_EXPTS=$(foreach dir,CM2G63L,coupled_AM2_LM3_SIS/$(dir))
+AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
 LM3_SIS2_EXPTS=$(foreach dir,OM_360x320_C180,land_ice_ocean_LM3_SIS2/$(dir))
-EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS)
+EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_EXPTS) $(AM2_LM3_SIS2_EXPTS)
 EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 
 # Name of MOM6-examples directory
