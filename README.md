@@ -52,7 +52,7 @@ make COMPILER=gnu am2_sis am2_sis2 -j
 
 To run a single experiment:
 ```bash
-make MOM6-examples/ocean_only/global_ALE/z/timestats.intel
+make MOM6-examples/ocean_only/global_ALE/z/ocean.stats.intel
 ```
 
 Check status of experiments (from within `MOM6-examples`):
@@ -80,11 +80,11 @@ make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/build/i
 Run (requires the sourcing an "env"):
 ```bash
 source MOM6-examples/build/intel/env
-make MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/timestats.intel
+make MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/ocean.stats.intel
 ```
 
 Compile and run in one step:
 ```bash
 source MOM6-examples/build/intel/env
-make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/timestats.intel
+make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/ocean.stats.intel
 ```
