@@ -251,6 +251,8 @@ backup: Clean
 	tar zcvf ~/MOM6_backup.tgz MOM6
 sync:
 	rsync -rtvim --exclude RESTART/ --exclude tools/ --exclude build/ --include '*/' --include \*.nc --exclude \* $(EXPT)/ gfdl:/local2/home/workspace/$(EXPT)/
+sync_stats:
+	rsync -rvim --include=\*/ --include=ocean.stats.\*.nc --exclude=\* MOM6-examples/{ocean_only,ice_ocean_SIS*,coupled_AM2_LM3_SIS*,land*} Alistair.Adcroft@gfdl:/local2/home/workspace/MOM6-examples/
 doxMOM6: MOM6-examples/src/MOM6/html/index.html
 MOM6-examples/src/MOM6/html/index.html: MOM6-examples/src/MOM6/doxygen $(MOM6)/config_src/*/* $(MOM6)/src/*/* $(MOM6)/src/*/*/*
 	(cd $(<D); ./doxygen/bin/doxygen .doxygen)
