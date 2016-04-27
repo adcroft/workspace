@@ -83,7 +83,7 @@ BUILD_DIR=$(MOM6_EXAMPLES)/build
 #BUILD_DIR=$(MOM6_EXAMPLES)/build-openmp
 #BUILD_DIR=$(MOM6_EXAMPLES)/build-intel15
 # MKMF package
-MKMF_DIR=$(BUILD_DIR)/mkmf
+MKMF_DIR=$(EXTRAS)/mkmf
 # Location of bin scripts
 BIN_DIR=$(MKMF_DIR)/bin
 # Location of site templats
@@ -281,8 +281,8 @@ checkout_minimal:
 	(cd $(MOM6_EXAMPLES); git submodule update src/MOM6)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule init)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule update)
-	make $(MKMF_DIR)
-$(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL):
+	(cd $(MOM6_EXAMPLES); git submodule update src/mkmf)
+$(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
 	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
 	(cd $(MOM6_EXAMPLES); git submodule init)
 	(cd $(MOM6_EXAMPLES); git submodule update)
@@ -308,9 +308,6 @@ cppLM3: $(LM3_REPOS)
 	find $(LM3)/land_lad2 -type f -name \*.f90 -exec mv {} $(LM3)/land_lad2_cpp/ \;
 #	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Dintel14_bug -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 $(AM2_REPOS): | $(AM2)
-$(MKMF_DIR):
-	mkdir -p $(@D)
-	(cd $(@D); git clone git@github.com:NOAA-GFDL/mkmf.git)
 $(BIN_DIR) $(TEMPLATE_DIR): $(MKMF_DIR)
 $(MOM6_EXAMPLES)/.datasets: /lustre/f1/pdata/gfdl_O/datasets
 	(cd $(@D); ln -s $< $(@F))
