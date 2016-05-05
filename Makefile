@@ -29,7 +29,9 @@ SOLO_EXPTS=$(foreach dir, \
           ,ocean_only/$(dir))
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
+#ALE_EXPTS+=ocean_only/tracer_mixing/z ocean_only/tracer_mixing/rho
 #SOLO_EXPTS+=ocean_only/MESO_025_63L
+#SOLO_EXPTS+=ocean_only/tracer_mixing/layer
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
 #SIS2_EXPTS+=$(foreach dir,SIS2 SIS2_icebergs_1 SIS2_icebergs_2 SIS2_icebergs_layout,ice_ocean_SIS2/$(dir))
@@ -80,8 +82,7 @@ OCEAN_SHARED=$(EXTRAS)/ocean_shared
 ICE_OCEAN_EXTRAS=$(MOM6_EXAMPLES)/src/ice_ocean_extras
 # Location to build
 BUILD_DIR=$(MOM6_EXAMPLES)/build
-#BUILD_DIR=$(MOM6_EXAMPLES)/build-openmp
-#BUILD_DIR=$(MOM6_EXAMPLES)/build-intel15
+#BUILD_DIR=$(MOM6_EXAMPLES)/OPENMP-build
 # MKMF package
 MKMF_DIR=$(EXTRAS)/mkmf
 # Location of bin scripts
@@ -105,10 +106,9 @@ SITE=ncrc
 # MPIRUN can be aprun or mpirun
 MPIRUN=aprun
 # MAKEMODE can have either NETCDF=3, NETCDF=4 or OPENMP=1
-MAKEMODE=NETCDF=4 OPENMP=1
-MAKEMODE=NETCDF=3 OPENMP=1
 MAKEMODE=NETCDF=4
 MAKEMODE=NETCDF=3
+#MAKEMODE+=OPENMP=1
 MODES=repro prod debug
 COMPILERS=intel pathscale pgi cray gnu
 COMPILERS=gnu intel pgi
@@ -649,6 +649,12 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/flow_downslope/layer/$(TI
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/flow_downslope/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/flow_downslope/z/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/flow_downslope/rho/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/flow_downslope/rho/$(fl))
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/flow_downslope/sigma/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/flow_downslope/sigma/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/%/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/layer/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/z/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/rho/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/rho/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/sigma/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/tracer_mixing/sigma/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/seamount/%/$(TIMESTATS).$(cmp)): NPES=2
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/seamount/layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/seamount/layer/$(fl))
