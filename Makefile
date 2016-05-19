@@ -145,13 +145,13 @@ ALLMESG=On batch nodes: building executables, running experiments
 ALLTARGS=ale solo symmetric sis sis2 am2_sis am2_sis2 lm3_sis2
 else
 ALLMESG=On login nodes: building executables, reporting status
-ALLTARGS=$(EXEC_MODE) status
+ALLTARGS=$(EXEC_MODE)
 endif
-all:
-	@echo HOST = $(HOST)
-	@echo $(ALLMESG)
-	@echo targets = $(ALLTARGS)
-	@time make $(ALLTARGS)
+all: $(ALLTARGS)
+#	@echo HOST = $(HOST)
+#	@echo $(ALLMESG)
+#	@echo targets = $(ALLTARGS)
+#	@time make $(ALLTARGS)
 ALL:
 	make gnu
 	make intel
@@ -786,10 +786,11 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C
 
 # Canned rule to run all experiments
 define run-model-to-make-$(TIMESTATS)
-echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
+@echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); $(RM) -rf RESTART; mkdir -p RESTART
 $(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats$(suffix $@),time_stamp.out} $@
-set rdir=$$cwd; (cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL)) | sed 's,^,$@: ,'
+set rdir=$$cwd; cd $(dir $@); setenv OMP_NUM_THREADS 1; time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out
+@sed 's,^,$@: ,' stderr.$(STDERR_LABEL)
 @echo -n $@: Done at ' '; date
 @$(MV) $(dir $@)std.out $(dir $@)std$(suffix $@).out
 @cd $(dir $@); (echo -n 'git status: '; git status -s $@) | sed 's,^,$@: ,'
