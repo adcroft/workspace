@@ -125,7 +125,7 @@ LM3_tag=9359c877e6f27a6292911d55754b3bda5c1091b9
 # Default compiler configuration
 EXEC_MODE=repro
 TEMPLATE=$(TEMPLATE_DIR)/$(SITE)-$(COMPILER).mk
-NPES=2
+#NPES=2
 PMAKEOPTS=-l 12.0 -j 12
 PMAKEOPTS=-j
 
@@ -434,7 +434,7 @@ define build_mom6_executable
 @echo EXEC_MODE=$(EXEC_MODE)
 mkdir -p $(dir $@)
 (cd $(dir $@); $(RM) -f path_names; $(REL_PATH)/$(BIN_DIR)/list_paths ./ $(foreach dir,$(SRCPTH),$(REL_PATH)/$(dir)))
-(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -o '-I../../shared/$(EXEC_MODE)' -p 'MOM6 -L../../shared/$(EXEC_MODE) -lfms' -c '$(CPPDEFS)' path_names )
+(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -o '-I../../shared/$(EXEC_MODE)' -p MOM6 -l '-L../../shared/$(EXEC_MODE) -lfms' -c '$(CPPDEFS)' path_names )
 (cd $(dir $@); $(RM) -f MOM6)
 (cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) MOM6)
 endef
@@ -495,7 +495,7 @@ $(foreach mode,$(MODES),$(BUILD_DIR)/%/coupled_AM4_LM3_SIS/$(mode)/MOM6): $(fore
 	$(build_mom6_executable)
 
 # Static global executable
-STATIC_GLOBAL_PTH=$(MOM6)/examples/ocean_only/global $(MOM6)/config_src/solo_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/
+STATIC_GLOBAL_PTH=$(MOM6_EXAMPLES)/ocean_only/global $(MOM6)/config_src/solo_driver $(MOM6)/src/*/ $(MOM6)/src/*/*/
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/STATIC_global/$(mode)/MOM6): SRCPTH=$(STATIC_GLOBAL_PTH)
 $(foreach mode,$(MODES),$(BUILD_DIR)/%/STATIC_global/$(mode)/MOM6): $(foreach dir,$(STATIC_GLOBAL_PTH),$(wildcard $(dir)/*.F90 $(dir)/*.h)) $(BUILD_DIR)/%/shared/$(EXEC_MODE)/libfms.a
 	$(build_mom6_executable)
@@ -516,10 +516,9 @@ $(foreach cmp,$(COMPILERS),$(foreach mode,$(MODES),$(BUILD_DIR)/$(cmp)/shared/$(
 	(cd $(dir $@); $(REL_PATH)/$(BIN_DIR)/mkmf -t $(REL_PATH)/$(TEMPLATE) -p libfms.a -c '$(CPPDEFS)' path_names)
 	(cd $(dir $@); $(RM) -f libfms.a)
 	(cd $(dir $@); source ../../env; make $(MAKEMODE) $(PMAKEOPTS) libfms.a)
-#(cd $(dir $@); $(MV) path_names path_names.orig; egrep -v "atmos_ocean_fluxes|coupler_types|coupler_util" path_names.orig > path_names)
 
 # Rules to associated an executable to each experiment #########################
-# (implemented by makeing the executable the FIRST pre-requisite)
+# (implemented by making the executable the FIRST prerequisite)
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/symmetric_ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/ice_ocean_SIS/$(EXEC_MODE)/MOM6
