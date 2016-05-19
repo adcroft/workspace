@@ -113,6 +113,7 @@ MAKEMODE=NETCDF=3
 MODES=repro prod debug
 COMPILERS=intel pathscale pgi cray gnu
 COMPILERS=gnu intel pgi
+#COMPILERS+=cray
 
 # Version of code
 MOM6_tag=dev/master
@@ -323,6 +324,7 @@ wiki.MOM6:
 $(BUILD_DIR)/gnu/%/MOM6 $(BUILD_DIR)/gnu/%/libfms.a: COMPILER=gnu
 $(BUILD_DIR)/intel/%/MOM6 $(BUILD_DIR)/intel/%/libfms.a: COMPILER=intel
 $(BUILD_DIR)/pgi/%/MOM6 $(BUILD_DIR)/pgi/%/libfms.a: COMPILER=pgi
+$(BUILD_DIR)/cray/%/MOM6 $(BUILD_DIR)/cray/%/libfms.a: COMPILER=cray
 # Set REPRO and DEBUG variables based on the build directory
 %/prod/MOM6 %/prod/libfms.a: EXEC_MODE=prod
 %/repro/MOM6 %/repro/libfms.a: EXEC_MODE=repro
@@ -333,6 +335,7 @@ $(BUILD_DIR)/pgi/%/MOM6 $(BUILD_DIR)/pgi/%/libfms.a: COMPILER=pgi
 $(foreach mode,$(MODES),$(BUILD_DIR)/gnu/shared/$(mode)/libfms.a): $(BUILD_DIR)/gnu/env
 $(foreach mode,$(MODES),$(BUILD_DIR)/intel/shared/$(mode)/libfms.a): $(BUILD_DIR)/intel/env
 $(foreach mode,$(MODES),$(BUILD_DIR)/pgi/shared/$(mode)/libfms.a): $(BUILD_DIR)/pgi/env
+$(foreach mode,$(MODES),$(BUILD_DIR)/cray/shared/$(mode)/libfms.a): $(BUILD_DIR)/cray/env
 
 # Create module scripts
 envs: $(foreach cmp,$(COMPILERS),$(BUILD_DIR)/$(cmp)/env)
