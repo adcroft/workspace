@@ -35,6 +35,7 @@ SOLO_EXPTS=$(foreach dir, \
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
 SIS2_EXPTS=$(foreach dir,Baltic SIS2 SIS2_cgrid SIS2_bergs_cgrid OM4_025,ice_ocean_SIS2/$(dir))
 #SIS2_EXPTS+=$(foreach dir,SIS2 SIS2_icebergs_1 SIS2_icebergs_2 SIS2_icebergs_layout,ice_ocean_SIS2/$(dir))
+#SIS2_EXPTS+=$(foreach dir,SIS2_bergs_cgrid_1 SIS2_bergs_cgrid_2,ice_ocean_SIS2/$(dir))
 SIS2_EXPTS+=ice_ocean_SIS2/OM4_05
 AM2_LM3_SIS_EXPTS=$(foreach dir,CM2G63L,coupled_AM2_LM3_SIS/$(dir))
 AM2_LM3_SIS2_EXPTS=$(foreach dir,AM2_SIS2_MOM6i_1deg,coupled_AM2_LM3_SIS2/$(dir))
@@ -748,6 +749,13 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_cgrid/$(TIMESTAT
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid/$(TIMESTATS).$(cmp)): NPES=60
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).$(cmp)): NPES=60
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).$(cmp)): NPES=60
+$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).gnu: $(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).gnu
+$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).intel: $(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).intel
+$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).pgi: $(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_1/$(TIMESTATS).pgi
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/SIS2_bergs_cgrid_2/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/MOM6z_SIS2_025/$(TIMESTATS).$(cmp)): NPES=512
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS2/MOM6z_SIS2_025/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/ice_ocean_SIS2/MOM6z_SIS2_025/$(fl))
