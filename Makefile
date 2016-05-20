@@ -80,7 +80,7 @@ ATMOS_PARAM=$(EXTRAS)/atmos_param
 LAND_NULL=$(EXTRAS)/land_null
 # BGC (ocean_shared)
 OCEAN_SHARED=$(EXTRAS)/ocean_shared
-# Name of ice_ocean_extras directory (which is in MOM6-examples and is not a module)
+# Name of ice_ocean_extras directory (which is in $(MOM6_examples) and is not a module)
 ICE_OCEAN_EXTRAS=$(MOM6_EXAMPLES)/src/ice_ocean_extras
 # Location to build
 BUILD_DIR=$(MOM6_EXAMPLES)/build
@@ -197,7 +197,7 @@ gnu: $(BUILD_DIR)/gnu/env
 help:
 	@echo 'Typical targets:'
 	@echo ' make help     - this message'
-	@echo ' make checkout - checkout source code                     ** LOGIN nodes only **'
+	@echo ' make clone    - clone source code                     ** LOGIN nodes only **'
 	@echo ' make buildall - compile executables for each of the configurations'
 	@echo '                 listed in the MODES variable'
 	@echo
@@ -266,8 +266,9 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); cmake -G "Unix Makefiles" .)
 	(cd $(@); make)
 
-# This section defines how to checkout and layout the source code
-checkout: $(MOM6_EXAMPLES) $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MKMF_DIR) $(TEMPLATE_DIR) $(BIN_DIR) $(MOM6_EXAMPLES)/.datasets
+# This section defines how to clone and layout the source code
+clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MOM6_EXAMPLES)/.datasets
+clone_minimal: $(MOM6_EXAMPLES)/.datasets
 status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
@@ -277,21 +278,11 @@ update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_para
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; git checkout $(FMS_tag)'
 	cd $(LM3)/land_lad2; git fetch; git checkout $(LM3_tag)
-checkout_minimal:
-	git clone git@github.com:adcroft/MOM6-examples.git
-	(cd $(MOM6_EXAMPLES); git submodule init)
-	(cd $(MOM6_EXAMPLES); git submodule update src/FMS)
-	(cd $(MOM6_EXAMPLES); git submodule update src/MOM6)
-	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule init)
-	(cd $(MOM6_EXAMPLES)/src/MOM6; git submodule update)
-	(cd $(MOM6_EXAMPLES); git submodule update src/mkmf)
 $(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
 	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
-	(cd $(MOM6_EXAMPLES); git submodule init)
-	(cd $(MOM6_EXAMPLES); git submodule update)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
 	(cd $(MOM6_EXAMPLES)/src/SIS2; git checkout $(SIS2_tag))
-$(EXTRAS) $(AM2) $(LM3):
+$(EXTRAS) $(AM2) $(LM3): | $(MOM6_EXAMPLES)
 	mkdir -p $@
 $(ICE_PARAM) $(ATMOS_PARAM) $(AM2_REPOS) $(LM3)/land_param: | $(EXTRAS)
 	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/$(@F).git)
@@ -311,8 +302,7 @@ cppLM3: $(LM3_REPOS)
 	find $(LM3)/land_lad2 -type f -name \*.f90 -exec mv {} $(LM3)/land_lad2_cpp/ \;
 #	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Dintel14_bug -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 $(AM2_REPOS): | $(AM2)
-$(BIN_DIR) $(TEMPLATE_DIR): $(MKMF_DIR)
-$(MOM6_EXAMPLES)/.datasets: /lustre/f1/pdata/gfdl_O/datasets
+$(MOM6_EXAMPLES)/.datasets: /lustre/f1/pdata/gfdl_O/datasets | $(MOM6_EXAMPLES)
 	(cd $(@D); ln -s $< $(@F))
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:

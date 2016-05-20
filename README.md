@@ -13,9 +13,9 @@ git clone git@github.com:adcroft-gfdl/workspace.git workspace
 
 ## Installation
 
-To checkout out code and tools (from within the `workspace` directory):
+To clone code and tools (from within the `workspace` directory):
 ```bash
-make checkout
+make clone
 ```
 
 ## Compilation
@@ -67,9 +67,9 @@ Obtain the Makefile:
 git clone git@github.com:adcroft-gfdl/workspace.git workspace
 ```
 
-Checkout source code:
+Clone source code:
 ```bash
-make CVS='cvs -d /home/fms/cvs' SITE=linux checkout
+make CVS='cvs -d /home/fms/cvs' SITE=linux clone
 ```
 
 Compile:
