@@ -267,8 +267,12 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); make)
 
 # This section defines how to clone and layout the source code
+GITHUB=https://github.com/# This uses the unauthenticated HTTPS protocol
+GITHUB=git@github.com:# This uses the authenticated SSH protocol
 clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MOM6_EXAMPLES)/.datasets
 clone_minimal: $(MOM6_EXAMPLES)/.datasets
+clone_http:
+	make GITHUB="https://github.com/" clone
 status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
@@ -278,8 +282,15 @@ update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_para
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; git checkout $(FMS_tag)'
 	cd $(LM3)/land_lad2; git fetch; git checkout $(LM3_tag)
-$(MOM6_EXAMPLES) $(FMS) (SIS2) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
-	git clone --recursive git@github.com:NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
+$(MOM6_EXAMPLES) $(FMS) (SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
+	git clone $(GITHUB)NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
+	(cd $(MOM6_EXAMPLES); git submodule init)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/FMS FMS)
+	(cd $(MOM6_EXAMPLES)/src; git clone --recursive $(GITHUB)NOAA-GFDL/MOM6 MOM6)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/SIS2 SIS2)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/icebergs icebergs)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/coupler coupler)
+	(cd $(MOM6_EXAMPLES); git submodule update)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
 	(cd $(MOM6_EXAMPLES)/src/SIS2; git checkout $(SIS2_tag))
 $(EXTRAS) $(AM2) $(LM3): | $(MOM6_EXAMPLES)
@@ -306,9 +317,9 @@ $(MOM6_EXAMPLES)/.datasets: /lustre/f1/pdata/gfdl_O/datasets | $(MOM6_EXAMPLES)
 	(cd $(@D); ln -s $< $(@F))
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:
-	git clone git@github.com:NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
+	git clone $(GITHUB)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
 wiki.MOM6:
-	git clone git@github.com:NOAA-GFDL/MOM6.wiki.git wiki.MOM6
+	git clone $(GITHUB)NOAA-GFDL/MOM6.wiki.git wiki.MOM6
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory
