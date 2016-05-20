@@ -795,9 +795,8 @@ define run-model-to-make-$(TIMESTATS)
 @echo $@: Using executable $< ' '; echo -n $@: Starting at ' '; date
 @cd $(dir $@); $(RM) -rf RESTART; mkdir -p RESTART
 $(RM) -f $(dir $@){Depth_list.nc,RESTART/coupler.res,CPU_stats$(suffix $@),time_stamp.out} $@
-set rdir=$$cwd; cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std.out) |& tee stderr.$(STDERR_LABEL) | sed 's,^,$@: ,'
+set rdir=$$cwd; cd $(dir $@); setenv OMP_NUM_THREADS 1; (time $(MPIRUN) -n $(NPES) $$rdir/$< > std$(suffix $@).out) |& tee stderr.$(STDERR_LABEL) | sed 's,^,$@: ,'
 @echo -n $@: Done at ' '; date
-@$(MV) $(dir $@)std.out $(dir $@)std$(suffix $@).out
 @cd $(dir $@); (echo -n 'git status: '; git status -s $@) | sed 's,^,$@: ,'
 @cd $(dir $@); (echo; git status .) | sed 's,^,$@: ,'
 endef
