@@ -66,8 +66,8 @@ LM3_REPOS=$(LM3)/land_param $(LM3)/land_lad2
 LM3_MODULES=$(LM3)/land_param $(LM3)/land_lad2_cpp
 # Name of AM2 directory
 AM2=$(EXTRAS)/AM2
-AM2_REPOS=$(AM2)/atmos_drivers $(AM2)/atmos_fv_dynamics $(AM2)/atmos_shared
-AM2_MODULES=$(AM2)/atmos_drivers/coupled $(AM2)/atmos_fv_dynamics/driver/coupled $(AM2)/atmos_fv_dynamics/model $(AM2)/atmos_fv_dynamics/tools $(AM2)/atmos_shared $(ATMOS_PARAM)
+AM2_REPOS=$(AM2)/atmos_drivers $(AM2)/atmos_fv_dynamics $(AM2)/atmos_shared_am3
+AM2_MODULES=$(AM2)/atmos_drivers/coupled $(AM2)/atmos_fv_dynamics/driver/coupled $(AM2)/atmos_fv_dynamics/model $(AM2)/atmos_fv_dynamics/tools $(AM2)/atmos_shared_am3 $(ATMOS_PARAM)
 # Name of coupler directory
 COUPLER=$(EXTRAS)/coupler
 # Name of coupler directory
@@ -75,7 +75,7 @@ ICE_PARAM=$(EXTRAS)/ice_param
 # Name of atmos_null directory
 ATMOS_NULL=$(EXTRAS)/atmos_null
 # Name of atmos_param directory
-ATMOS_PARAM=$(EXTRAS)/atmos_param
+ATMOS_PARAM=$(EXTRAS)/atmos_param_am3
 # Name of land_null directory
 LAND_NULL=$(EXTRAS)/land_null
 # BGC (ocean_shared)
@@ -103,6 +103,7 @@ STATS_PLATFORM=
 STATS_COMPILER_VER=
 CPPDEFS='-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\"'
 CPPDEFS=-Duse_libMPI -Duse_netCDF -DSPMD -DUSE_LOG_DIAG_FIELD_INFO -D_FILE_VERSION="`$(REL_PATH)/$(BIN_DIR)/git-version-string $$<`" -DSTATSLABEL=\"$(STATS_PLATFORM)$(COMPILER)$(STATS_COMPILER_VER)\" -DMAXFIELDMETHODS_=500
+CPPDEFS+=-Duse_AM3_physics
 # SITE can be ncrc, hpcs, doe, linux
 SITE=ncrc
 # MPIRUN can be aprun or mpirun
