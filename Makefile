@@ -93,6 +93,8 @@ BIN_DIR=$(MKMF_DIR)/bin
 TEMPLATE_DIR=$(MKMF_DIR)/templates
 # Relative path from compile directory to top
 REL_PATH=../../../../..
+# A path for installing the input datasets (not used in development)
+DATASETS=datasets
 
 #CPPDEFS="-Duse_libMPI -Duse_netCDF -Duse_LARGEFILE -DSPMD -Duse_shared_pointers -Duse_SGI_GSM -DLAND_BND_TRACERS"
 CPPDEFS="-DSPMD -DLAND_BND_TRACERS"
@@ -316,6 +318,14 @@ cppLM3: $(LM3_REPOS)
 $(AM2_REPOS): | $(AM2)
 $(MOM6_EXAMPLES)/.datasets: /lustre/f1/pdata/gfdl_O/datasets | $(MOM6_EXAMPLES)
 	(cd $(@D); ln -s $< $(@F))
+construct_datasets: $(foreach dir,AM2_LM3_MOM6i_1deg CM2G63L CORE global GOLD_SIS_025 GOLD_SIS MESO_025_23L MESO_025_63L MOM6_SIS_icebergs obs OM4_025 OM4_05 OM4_360x320_C180,$(DATASETS)/$(dir))
+	(cd $(MOM6_EXAMPLES); ln -s ../$(DATASETS) .datasets)
+$(DATASETS):
+	mkdir -p $(DATASETS)
+$(DATASETS)/%: $(DATASETS)/%.tgz
+	(cd $(@D); tar vxf $(<F))
+$(DATASETS)/%.tgz: | $(DATASETS)
+	(cd $(@D); wget ftp://ftp.gfdl.noaa.gov/pub/aja/datasets/$(@F))
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:
 	git clone $(GITHUB)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
