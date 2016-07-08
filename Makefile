@@ -18,6 +18,7 @@ ALE_EXPTS=$(foreach dir, \
           global_ALE/z global_ALE/hycom \
           mixed_layer_restrat_2d \
           ,ocean_only/$(dir))
+#         ISOMIP/rho ISOMIP/z
 
 SOLO_EXPTS=$(foreach dir, \
           resting/layer \
@@ -27,6 +28,7 @@ SOLO_EXPTS=$(foreach dir, \
           sloshing/layer adjustment2d/layer seamount/layer flow_downslope/layer global_ALE/layer \
           double_gyre DOME benchmark nonBous_global Phillips_2layer \
           ,ocean_only/$(dir))
+#         ISOMIP/layer
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
 #ALE_EXPTS+=ocean_only/tracer_mixing/z ocean_only/tracer_mixing/rho
@@ -723,6 +725,12 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/MESO_025_23L/$(TIMESTATS)
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/MESO_025_63L/$(TIMESTATS).$(cmp)): NPES=288
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/MESO_025_63L/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/MESO_025_63L/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/ISOMIP/%/$(TIMESTATS).$(cmp)): NPES=16
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/ISOMIP/layer/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/ISOMIP/layer/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/ISOMIP/z/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/ISOMIP/z/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/ISOMIP/sigma/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/ISOMIP/sigma/$(fl))
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/ISOMIP/rho/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ocean_only/ISOMIP/rho/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS/GOLD_SIS/$(TIMESTATS).$(cmp)): NPES=60
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ice_ocean_SIS/GOLD_SIS/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(MOM6_EXAMPLES)/ice_ocean_SIS/GOLD_SIS/$(fl))
