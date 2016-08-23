@@ -48,6 +48,9 @@ EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_
 EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #EXPT_EXECS+=bgc_SIS2
 
+# Experiments to test when using MOM6_EXAMPLES=ESMG-configs
+ESMG_EXPTS=CCS1
+
 # Name of MOM6-examples directory
 MOM6_EXAMPLES=MOM6-examples
 # Name of FMS/shared directory
@@ -547,6 +550,7 @@ $(foreach dir,$(AM2_LM3_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(
 $(foreach dir,$(AM2_LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/coupled_LM3_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(BGC_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/bgc_SIS2/$(EXEC_MODE)/MOM6
+$(foreach dir,$(ESMG_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).gnu): $(BUILD_DIR)/gnu/ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).intel): $(BUILD_DIR)/intel/ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).intel): $(BUILD_DIR)/intel/symmetric_ocean_only/$(EXEC_MODE)/MOM6
@@ -556,6 +560,7 @@ $(foreach dir,$(AM2_LM3_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).intel): 
 $(foreach dir,$(AM2_LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).intel): $(BUILD_DIR)/intel/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).intel): $(BUILD_DIR)/intel/coupled_LM3_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(BGC_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).intel): $(BUILD_DIR)/intel/bgc_SIS2/$(EXEC_MODE)/MOM6
+$(foreach dir,$(ESMG_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).intel): $(BUILD_DIR)/intel/ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).pgi): $(BUILD_DIR)/pgi/ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).pgi): $(BUILD_DIR)/pgi/symmetric_ocean_only/$(EXEC_MODE)/MOM6
@@ -565,6 +570,7 @@ $(foreach dir,$(AM2_LM3_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).pgi): $(
 $(foreach dir,$(AM2_LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).pgi): $(BUILD_DIR)/pgi/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).pgi): $(BUILD_DIR)/pgi/coupled_LM3_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(BGC_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).pgi): $(BUILD_DIR)/pgi/bgc_SIS2/$(EXEC_MODE)/MOM6
+$(foreach dir,$(ESMG_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).pgi): $(BUILD_DIR)/pgi/ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 
 $(foreach dir,$(SOLO_EXPTS) $(ALE_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).cray): $(BUILD_DIR)/cray/ocean_only/$(EXEC_MODE)/MOM6
 $(foreach dir,$(SYMMETRIC_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).cray): $(BUILD_DIR)/cray/symmetric_ocean_only/$(EXEC_MODE)/MOM6
@@ -574,6 +580,7 @@ $(foreach dir,$(AM2_LM3_SIS_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).cray): $
 $(foreach dir,$(AM2_LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).cray): $(BUILD_DIR)/cray/coupled_AM2_LM3_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(LM3_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).cray): $(BUILD_DIR)/cray/coupled_LM3_SIS2/$(EXEC_MODE)/MOM6
 $(foreach dir,$(BGC_SIS2_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).cray): $(BUILD_DIR)/cray/bgc_SIS2/$(EXEC_MODE)/MOM6
+$(foreach dir,$(ESMG_EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).cray): $(BUILD_DIR)/cray/ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 
 # Rules for configuring and running experiments ################################
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/ocean_only/unit_tests/$(TIMESTATS).$(cmp)): NPES=2
@@ -808,6 +815,9 @@ $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/coupled_AM2_LM3_SIS2/AM2_SIS2_MOM6i_
 
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C180/$(TIMESTATS).$(cmp)): NPES=432
 $(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C180/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/land_ice_ocean_LM3_SIS2/OM_360x320_C180/$(fl))
+
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/CCS1/$(TIMESTATS).$(cmp)): NPES=32
+$(foreach cmp,$(COMPILERS),$(MOM6_EXAMPLES)/CCS1/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override SIS_input SIS_override,$(MOM6_EXAMPLES)/CCS1/$(fl))
 
 # Canned rule to run all experiments
 define run-model-to-make-$(TIMESTATS)
