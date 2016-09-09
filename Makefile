@@ -267,14 +267,14 @@ sync:
 	rsync -rtvim --exclude RESTART/ --exclude tools/ --exclude build/ --include '*/' --include \*.nc --exclude \* $(EXPT)/ gfdl:/local2/home/workspace/$(EXPT)/
 sync_stats:
 	rsync -rvim --include=\*/ --include=ocean.stats.\*.nc --exclude=\* MOM6-examples/{ocean_only,ice_ocean_SIS*,coupled_AM2_LM3_SIS*,land*} Alistair.Adcroft@gfdl:/local2/home/workspace/MOM6-examples/
-doxMOM6: MOM6-examples/src/MOM6/doxygen
+doxMOM6: $(MOM6)/html/index.html
+$(MOM6)/html/index.html: $(MOM6)/ $(MOM6)/config_src/*/* $(MOM6)/src/*/* $(MOM6)/src/*/*/* $(MOM6)/doxygen/bin/doxygen
 	(cd $(<D); ./doxygen/bin/doxygen .doxygen)
-MOM6-examples/src/MOM6/html/index.html: MOM6-examples/src/MOM6/doxygen $(MOM6)/config_src/*/* $(MOM6)/src/*/* $(MOM6)/src/*/*/*
-	(cd $(<D); ./doxygen/bin/doxygen .doxygen)
-MOM6-examples/src/MOM6/doxygen:
+$(MOM6)/doxygen/bin/doxygen: $(MOM6)/doxygen
+	(cd $(<); cmake -G "Unix Makefiles" .)
+	(cd $(<); make)
+$(MOM6)/doxygen:
 	(cd $(@D); git clone https://github.com/doxygen/doxygen)
-	(cd $(@); cmake -G "Unix Makefiles" .)
-	(cd $(@); make)
 
 # This section defines how to clone and layout the source code
 clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MOM6_EXAMPLES)/.datasets
