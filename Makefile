@@ -46,20 +46,27 @@ EXPTS=$(ALE_EXPTS) $(SOLO_EXPTS) $(SYMMETRIC_EXPTS) $(SIS2_EXPTS) $(AM2_LM3_SIS_
 EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_LM3_SIS2 coupled_AM2_LM3_SIS coupled_AM2_LM3_SIS2 # Executable/model configurations to build
 #EXPT_EXECS+=bgc_SIS2
 
+# Protocal for Github
+#GITHUB=https://github.com/# This uses the unauthenticated HTTPS protocol
+GITHUB=git@github.com:# This uses the authenticated SSH protocol
 # Name of MOM6-examples directory
 MOM6_EXAMPLES=MOM6-examples
+MOM6_EXAMPLES_FORK=$(GITHUB)NOAA-GFDL
 # Name of FMS/shared directory
 FMS=$(MOM6_EXAMPLES)/src/FMS
 # Name of MOM6 directory
 MOM6=$(MOM6_EXAMPLES)/src/MOM6
+MOM6_FORK=$(GITHUB)NOAA-GFDL
 # Location for extras components
 EXTRAS=$(MOM6_EXAMPLES)/src
 # Name of SIS1 directory
 SIS1=$(EXTRAS)/SIS
 # Name of SIS2 directory
 SIS2=$(MOM6_EXAMPLES)/src/SIS2
+SIS2_FORK=$(GITHUB)NOAA-GFDL
 # Name of icebergs directory
 ICEBERGS=$(MOM6_EXAMPLES)/src/icebergs
+ICEBERGS_FORK=$(GITHUB)NOAA-GFDL
 # Name of LM3 directory
 LM3=$(EXTRAS)/LM3
 LM3_REPOS=$(LM3)/land_param $(LM3)/land_lad2
@@ -270,12 +277,12 @@ MOM6-examples/src/MOM6/doxygen:
 	(cd $(@); make)
 
 # This section defines how to clone and layout the source code
-GITHUB=https://github.com/# This uses the unauthenticated HTTPS protocol
-GITHUB=git@github.com:# This uses the authenticated SSH protocol
 clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MOM6_EXAMPLES)/.datasets
-clone_minimal: $(MOM6_EXAMPLES)/.datasets
+clone_minimal: $(MOM6)
 clone_http:
 	make GITHUB="https://github.com/" clone
+clone_http_minimal:
+	make GITHUB="https://github.com/" clone_minimal
 status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
@@ -285,13 +292,13 @@ update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_para
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; git checkout $(FMS_tag)'
 	cd $(LM3)/land_lad2; git fetch; git checkout $(LM3_tag)
-$(MOM6_EXAMPLES) $(FMS) (SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
-	git clone $(GITHUB)NOAA-GFDL/MOM6-examples.git $(MOM6_EXAMPLES)
+$(MOM6_EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR)::
+	git clone $(MOM6_EXAMPLES_FORK)/MOM6-examples.git $(MOM6_EXAMPLES)
 	(cd $(MOM6_EXAMPLES); git submodule init)
 	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/FMS FMS)
-	(cd $(MOM6_EXAMPLES)/src; git clone --recursive $(GITHUB)NOAA-GFDL/MOM6 MOM6)
-	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/SIS2 SIS2)
-	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/icebergs icebergs)
+	(cd $(MOM6_EXAMPLES)/src; git clone --recursive $(MOM6_FORK)/MOM6 MOM6)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(SIS2_FORK)/SIS2 SIS2)
+	(cd $(MOM6_EXAMPLES)/src; git clone $(ICEBERGS_FORK)/icebergs icebergs)
 	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/coupler coupler)
 	(cd $(MOM6_EXAMPLES); git submodule update)
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
