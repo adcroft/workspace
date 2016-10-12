@@ -95,7 +95,7 @@ OCEAN_SHARED=$(EXTRAS)/ocean_shared
 ICE_OCEAN_EXTRAS=$(MOM6_EXAMPLES)/src/ice_ocean_extras
 # Location to build
 BUILD_DIR=$(MOM6_EXAMPLES)/build
-#BUILD_DIR=$(MOM6_EXAMPLES)/OPENMP-build
+#BUILD_DIR=$(MOM6_EXAMPLES)/build-OPENMP
 # MKMF package
 MKMF_DIR=$(EXTRAS)/mkmf
 # Location of bin scripts
