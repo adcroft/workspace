@@ -161,8 +161,13 @@ ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c3-batch$(n))),$(HOST))
 ALLMESG=On batch nodes: building executables, running experiments
 ALLTARGS=ale solo symmetric sis sis2 am2_sis am2_sis2 lm3_sis2
 else
+ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c4-batch$(n))),$(HOST))
+ALLMESG=On batch nodes: building executables, running experiments
+ALLTARGS=ale solo symmetric sis sis2 am2_sis am2_sis2 lm3_sis2
+else
 ALLMESG=On login nodes: building executables, reporting status
 ALLTARGS=$(EXEC_MODE)
+endif
 endif
 all: $(ALLTARGS)
 #	@echo HOST = $(HOST)
