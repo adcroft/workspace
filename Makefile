@@ -132,10 +132,12 @@ COMPILERS=gnu intel pgi
 #COMPILERS+=cray
 
 # Version of code
+MOM6_EXAMPLES_tag=dev/master
 MOM6_tag=dev/master
 SIS2_tag=dev/master
 FMS_tag=ulm_201510
 LM3_tag=9359c877e6f27a6292911d55754b3bda5c1091b9
+ICEBERGS_tag=dev/master
 
 # Default compiler configuration
 EXEC_MODE=repro
@@ -306,8 +308,10 @@ $(MOM6_EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(L
 	(cd $(MOM6_EXAMPLES)/src; git clone $(ICEBERGS_FORK)/icebergs icebergs)
 	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/coupler coupler)
 	(cd $(MOM6_EXAMPLES); git submodule update)
+	(cd $(MOM6_EXAMPLES); git checkout $(MOM6_EXAMPLES_tag))
 	(cd $(MOM6_EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
 	(cd $(MOM6_EXAMPLES)/src/SIS2; git checkout $(SIS2_tag))
+	(cd $(MOM6_EXAMPLES)/src/icebergs; git checkout $(ICEBERGS_tag))
 $(EXTRAS) $(AM2) $(LM3): | $(MOM6_EXAMPLES)
 	mkdir -p $@
 $(ICE_PARAM) $(ATMOS_PARAM) $(AM2_REPOS) $(LM3)/land_param: | $(EXTRAS)
