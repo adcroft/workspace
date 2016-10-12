@@ -297,7 +297,7 @@ update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_para
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; git checkout $(FMS_tag)'
 	cd $(LM3)/land_lad2; git fetch; git checkout $(LM3_tag)
-$(MOM6_EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR)::
+$(MOM6_EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
 	git clone $(MOM6_EXAMPLES_FORK)/MOM6-examples.git $(MOM6_EXAMPLES)
 	(cd $(MOM6_EXAMPLES); git submodule init)
 	(cd $(MOM6_EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/FMS FMS)
