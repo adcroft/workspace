@@ -1,0 +1,19 @@
+# This Travis-CI file is for testing the functionality of my Makefile.
+# It is NOT for testing MOM6.
+
+# This is a not a c-language project but it does use "make"
+language: c
+
+# Prerequisites for using the Makefile to build MOM6
+install:
+ - sudo apt-get install tcsh pkg-config
+ - sudo apt-get install gfortran
+ - sudo apt-get install netcdf-bin libnetcdf-dev
+ - sudo apt-get install openmpi-bin libopenmpi-dev
+
+# Test critical targets in the Makefile
+script:
+ - make clone_http_minimal
+ - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/shared/repro/libfms.a
+ - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/ocean_only/repro/MOM6
+ - make SITE=linux MPIRUN=mpirun NPES=2 MOM6-examples/ocean_only/double_gyre/ocean.stats.gnu
