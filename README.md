@@ -10,7 +10,7 @@ This repository provides a "Makefile" that does pretty much everything I need to
 
 ## To obtain Makefile:
 ```bash
-git clone git@github.com:adcroft-gfdl/workspace.git workspace
+git clone git@github.com:adcroft/workspace.git workspace
 ```
 
 ## Installation
