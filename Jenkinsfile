@@ -71,7 +71,7 @@ def doGitMerge(String gitDir, String sourceUrl, String sourceBranch, String targ
 node ('gaea'){
   // Variables that define the run parameters for gaea
   def moabAccount = "gfdl_f"
-  def nodeSize = 10
+  def nodeSize = 20
   def walltime = "01:00:00"
   def partition = "c3"
 
@@ -88,6 +88,10 @@ node ('gaea'){
 
   //////////////////////////////////////////////////////////////////////
   stage 'Perform merge'
+  // Trying this to see if it keeps the merge stage from running through the
+  // remainder of the build
+  sh 'echo Performing merges, if requested'
+
   // MOM6-examples
   doGitMerge('MOM6-examples', MOM6E_srcURL, MOM6E_srcBranch, MOM6E_targetBranch)
   // MOM6
@@ -121,7 +125,7 @@ node ('gaea'){
 pwd
 ls -l
 make gnu -j"""
-   sh "echo $simpleScript | MSUBQUERYINTERVAL=300 msub -K -A $moabAccount -N MOM6_jenkins_test -l partition=$partition,walltime=$walltime,nodes=$nodeSize"
+   sh "echo '$simpleScript' | MSUBQUERYINTERVAL=300 msub -K -A $moabAccount -N MOM6_jenkins_test -l partition=$partition,walltime=$walltime,nodes=$nodeSize"
 
   //////////////////////////////////////////////////////////////////////
   stage 'verify run'
