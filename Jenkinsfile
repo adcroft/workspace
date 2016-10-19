@@ -2,11 +2,13 @@
 
 // Vars that may be useful in entire script
 
-// Pipeline does not use the groovy `def var = ~/<pattern>/` to define 
+// Pipeline does not use the groovy `def var = ~/<pattern>/` to define
 // java.util.regex.Pattern classes.  But it looks like it will take strings,
 // but need to excape all '\'.
 def urlRegEx = '^(?>https?+:\\/\\/|git@)[a-zA-Z0-9-_.]+(?::\\d+)?+\\/[a-zA-Z0-9-_.]+(?:\\/[a-zA-Z0-9-_.]+)*.git$'
 def branchRegEx = '^[a-zA-Z-_.\\/]+$'
+
+// Variables to define the run parameters are defined in each node{} section
 
 // Useful functions (closures)
 
@@ -41,7 +43,7 @@ def doGitMerge(String gitDir, String sourceUrl, String sourceBranch, String targ
       println "Merging Repo:'$sourceUrl' branch:'$sourceBranch' into branch '$targetBranch'"
       try {
         dir(gitDir) {
-          // Bring in remote 
+          // Bring in remote
           sh "git checkout -b merge.${sourceBranch} ${targetBranch}"
           sh "git pull ${sourceUrl} ${sourceBranch}"
           sh "git checkout ${targetBranch}"
@@ -65,8 +67,14 @@ def doGitMerge(String gitDir, String sourceUrl, String sourceBranch, String targ
   }
   return myReturn
 }
-                                                                                          
+
 node ('gaea'){
+  // Variables that define the run parameters for gaea
+  def moabAccount = "gfdl_f"
+  def nodeSize = 10
+  def walltime = "01:00:00"
+  def partition = "c3"
+
   //////////////////////////////////////////////////////////////////////
   stage 'Prepare workspace'
   // Clean workspace
@@ -92,12 +100,12 @@ node ('gaea'){
   doGitMerge('MOM6-examples/src/FMS', FMS_srcURL, FMS_srcBranch, FMS_targetBranch)
   // coupler
   doGitMerge('MOM6-examples/src/coupler', CPL_srcURL, CPL_srcBranch, CPL_targetBranch)
-    
+
   // After all merge attempts, exit with FAILURE if currentBuild.result =~ 'FAILURE'
   if ( currentBuild.result =~ 'FAILURE' ) {
     error "A merge failed, stopping pipeline"
   }
-    
+
   //////////////////////////////////////////////////////////////////////
   stage 'build gnu'
   sh 'make gnu -j'
@@ -105,4 +113,17 @@ node ('gaea'){
   //stage 'Stage 2'
   //echo 'Hello World 2'
   //sh "pwd && ls -l"
+
+  //////////////////////////////////////////////////////////////////////
+  stage 'Launch and wait'
+  // The script to run on the batch node
+  def simpleScript = """cd \$PBS_O_WORKDIR
+pwd
+ls -l
+make gnu -j"""
+   sh "echo $simpleScript | MSUBQUERYINTERVAL=300 msub -K -A $moabAccount -N MOM6_jenkins_test -l partition=$partition,walltime=$walltime,nodes=$nodeSize"
+
+  //////////////////////////////////////////////////////////////////////
+  stage 'verify run'
+  sh 'sleep 10'
 }
