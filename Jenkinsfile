@@ -122,14 +122,14 @@ node ('gaea'){
   stage 'Prepare to run'
   sh 'make stats.all.md5sums'
 
-  //////////////////////////////////////////////////////////////////////
-  stage 'Launch and wait'
-  // The script to run on the batch node
-  def simpleScript = """cd \$PBS_O_WORKDIR
-pwd
-ls -l
-make gnu -j"""
-   sh "echo '$simpleScript' | MSUBQUERYINTERVAL=300 msub -K -A $moabAccount -N MOM6_jenkins_test -l partition=$partition,walltime=$walltime,nodes=$nodeSize"
+//  //////////////////////////////////////////////////////////////////////
+//  stage 'Launch and wait'
+//  // The script to run on the batch node
+//  def simpleScript = """cd \$PBS_O_WORKDIR
+//pwd
+//ls -l
+//make gnu -j"""
+//   sh "echo '$simpleScript' | MSUBQUERYINTERVAL=300 msub -K -A $moabAccount -N MOM6_jenkins_test -l partition=$partition,walltime=$walltime,nodes=$nodeSize"
 
   //////////////////////////////////////////////////////////////////////
   stage 'verify run'
