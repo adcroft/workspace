@@ -111,7 +111,7 @@ node ('gaea'){
   }
 
   //////////////////////////////////////////////////////////////////////
-  stage 'build gnu'
+  stage 'Build gnu'
   sh 'make gnu -j'
   //sh "pwd && ls -l"
   //stage 'Stage 2'
@@ -132,6 +132,6 @@ node ('gaea'){
 //   sh "echo '$simpleScript' | MSUBQUERYINTERVAL=300 msub -K -A $moabAccount -N MOM6_jenkins_test -l partition=$partition,walltime=$walltime,nodes=$nodeSize"
 
   //////////////////////////////////////////////////////////////////////
-  stage 'verify run'
+  stage 'Verify run'
   sh 'make test.all.md5sums'
 }
