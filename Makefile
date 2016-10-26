@@ -287,6 +287,17 @@ $(MOM6)/doxygen/bin/doxygen: $(MOM6)/doxygen
 $(MOM6)/doxygen:
 	(cd $(@D); git clone https://github.com/doxygen/doxygen)
 
+# This section provides targets used by Jenkins. "make stats.gnu.md5sum" before running the model. "make test.gnu.md5sum" after to get status code.
+stats.all.md5sums: $(foreach c,$(COMPILERS),stats.$(c).md5sum)
+stats.gnu.md5sum: COMPILER=gnu
+stats.intel.md5sum: COMPILER=intel
+stats.pgi.md5sum: COMPILER=pgi
+stats.%.md5sum:
+	md5sum $(STATS_FILES) | tee $@
+test.all.md5sums: $(foreach c,$(COMPILERS),test.$(c).md5sum)
+test.%.md5sum: stats.%.md5sum
+	md5sum -c $<
+
 # This section defines how to clone and layout the source code
 clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(MOM6_EXAMPLES)/.datasets
 clone_minimal: $(MOM6)
