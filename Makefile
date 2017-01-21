@@ -52,26 +52,25 @@ EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_
 ESMG_EXPTS=CCS1
 
 # Protocal for Github
-#GITHUB_URL=https://github.com/# This uses the unauthenticated HTTPS protocol
-GITHUB_URL=git@github.com:# This uses the authenticated SSH protocol
+GITHUB_URL=https://github.com/# This uses the unauthenticated HTTPS protocol
 # Name of MOM6-examples directory
 EXAMPLES=MOM6-examples
-EXAMPLES_FORK=$(GITHUB_URL)NOAA-GFDL
+EXAMPLES_FORK=NOAA-GFDL
 # Name of FMS/shared directory
 FMS=$(EXAMPLES)/src/FMS
 # Name of MOM6 directory
 MOM6=$(EXAMPLES)/src/MOM6
-MOM6_FORK=$(GITHUB_URL)NOAA-GFDL
+MOM6_FORK=NOAA-GFDL
 # Location for extras components
 EXTRAS=$(EXAMPLES)/src
 # Name of SIS1 directory
 SIS1=$(EXTRAS)/SIS
 # Name of SIS2 directory
 SIS2=$(EXAMPLES)/src/SIS2
-SIS2_FORK=$(GITHUB_URL)NOAA-GFDL
+SIS2_FORK=NOAA-GFDL
 # Name of icebergs directory
 ICEBERGS=$(EXAMPLES)/src/icebergs
-ICEBERGS_FORK=$(GITHUB_URL)NOAA-GFDL
+ICEBERGS_FORK=NOAA-GFDL
 # Name of LM3 directory
 LM3=$(EXTRAS)/LM3
 LM3_REPOS=$(LM3)/land_param $(LM3)/land_lad2
@@ -323,12 +322,12 @@ update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_para
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; $(GIT_CHECKOUT) $(FMS_tag)'
 	cd $(LM3)/land_lad2; git fetch; $(GIT_CHECKOUT) $(LM3_tag)
 $(EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
-	$(GIT_CLONE) $(EXAMPLES_FORK)/MOM6-examples.git $(EXAMPLES)
+	$(GIT_CLONE) $(GITHUB_URL)$(EXAMPLES_FORK)/MOM6-examples.git $(EXAMPLES)
 	(cd $(EXAMPLES); git submodule init)
 	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)NOAA-GFDL/FMS FMS)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) --recursive $(MOM6_FORK)/MOM6 MOM6)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(SIS2_FORK)/SIS2 SIS2)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(ICEBERGS_FORK)/icebergs icebergs)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) --recursive $(GITHUB_URL)$(MOM6_FORK)/MOM6 MOM6)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)$(SIS2_FORK)/SIS2 SIS2)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)$(ICEBERGS_FORK)/icebergs icebergs)
 	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)NOAA-GFDL/coupler coupler)
 	(cd $(EXAMPLES); git submodule -q update)
 	(cd $(EXAMPLES); $(GIT_CHECKOUT) $(EXAMPLES_tag))
