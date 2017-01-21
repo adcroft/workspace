@@ -147,6 +147,7 @@ PMAKEOPTS=-j
 
 TIMESTATS=ocean.stats
 STATS_FILES=$(foreach dir,$(EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(COMPILER))
+ALL_STATS_FILES=$(foreach cmp,$(COMPILERS),$(foreach dir,$(EXPTS),$(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS).$(cmp)))
 STDERR_LABEL=out
 # .SECONDARY stops deletiong of targets that were built implicitly
 .SECONDARY:
@@ -250,12 +251,16 @@ help:
 	@echo '               - On batch nodes, build the repro executables and run'
 	@echo '                 executables for any out-of-date stats files'
 	@echo 'Specific targets:                                         ** BATCH nodes only **\n' $(foreach dir,$(EXPTS),'make $(MOM6_EXAMPLES)/$(dir)/$(TIMESTATS)\n')
-status: # Check git status of $(STATS_FILES)
+Status: # Check git status of $(STATS_FILES)
 	@cd $(MOM6_EXAMPLES); git status -- $(subst $(MOM6_EXAMPLES)/,,$(STATS_FILES))
 	@echo ==================================================================
 	@cd $(MOM6_EXAMPLES); git status -s -- $(subst $(MOM6_EXAMPLES)/,,$(STATS_FILES))
 	@find $(MOM6_EXAMPLES)/ -name stderr.out -exec grep -H 'WARNING' {} \;
 	@find $(MOM6_EXAMPLES)/ -name stderr.out -exec grep -H 'diag_util_mod::opening_file' {} \;
+status: # Check git status of $(ALL_STATS_FILES)
+	@cd $(MOM6_EXAMPLES); git status -- $(subst $(MOM6_EXAMPLES)/,,$(ALL_STATS_FILES))
+	@echo ==================================================================
+	@cd $(MOM6_EXAMPLES); git status -s -- $(subst $(MOM6_EXAMPLES)/,,$(ALL_STATS_FILES))
 force: cleanstats
 	@make all
 cleanstats:
