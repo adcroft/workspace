@@ -308,7 +308,7 @@ test.%.md5sum: stats.%.md5sum
 	md5sum -c $<
 
 # This section defines how to clone and layout the source code
-clone: $(MOM6)
+clone: $(EXAMPLES)
 clone_dev: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(EXAMPLES)/.datasets
 	@make dev_urls dev_tags
 dev_urls: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
