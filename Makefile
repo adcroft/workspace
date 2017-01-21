@@ -321,6 +321,11 @@ dev_tags: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
 	(cd $(EXAMPLES)/src/MOM6; $(GIT_CHECKOUT) $(MOM6_tag))
 	(cd $(EXAMPLES)/src/SIS2; $(GIT_CHECKOUT) $(SIS2_tag))
 	(cd $(EXAMPLES)/src/icebergs; $(GIT_CHECKOUT) $(ICEBERGS_tag))
+dev_pull:
+	(cd $(EXAMPLES); git checkout; git pull)
+	(cd $(MOM6); git checkout; git pull)
+	(cd $(SIS2); git checkout; git pull)
+	(cd $(ICEBERGS); git checkout; git pull)
 show_remotes: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
 	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Remote for dir:; git remote -v'
 status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
