@@ -90,3 +90,6 @@ Compile and run in one step:
 source MOM6-examples/build/intel/env
 make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MPIRUN=mpirun MOM6-examples/ocean_only/CVmix_SCM_tests/wind_only/EPBL/ocean.stats.intel
 ```
+
+Compile with openMP:
+make BUILD_DIR=MOM6-examples/build-OPENMP MAKEMODE="OPENMP=1 NETCDF=3" MOM6-examples/build-OPENMP/intel/ice_ocean_SIS2/repro/MOM6
