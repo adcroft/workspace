@@ -23,7 +23,9 @@ script:
  - cp -rp src/* MOM6-examples/src/
  - ls -R
  - make dev_pull
-#- make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build build/gnu/shared/repro/libfms.a
+ - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build build/gnu/shared/repro/libfms.a
+ - cp -rp MOM6-examples/src/* src/
+ - ls -R
 #- make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/ocean_only/repro/MOM6
 #- make SITE=linux MPIRUN=mpirun NPES=2 MOM6-examples/ocean_only/double_gyre/ocean.stats.gnu
 #- make stats.all.md5sums
