@@ -156,6 +156,8 @@ STDERR_LABEL=out
 MV=\mv
 RM=\rm
 SHELL=tcsh
+GIT_CLONE=git clone -q
+GIT_CHECKOUT=git checkout -q
 
 # The "all" target depends on which set of nodes we are on...
 ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c3-batch$(n))),$(HOST))
@@ -291,7 +293,7 @@ $(MOM6)/doxygen/bin/doxygen: $(MOM6)/doxygen
 	(cd $(<); cmake -G "Unix Makefiles" .)
 	(cd $(<); make)
 $(MOM6)/doxygen:
-	(cd $(@D); git clone https://github.com/doxygen/doxygen)
+	(cd $(@D); $(GIT_CLONE) https://github.com/doxygen/doxygen)
 
 # This section provides targets used by Jenkins. "make stats.gnu.md5sum" before running the model. "make test.gnu.md5sum" after to get status code.
 stats.all.md5sums: $(foreach c,$(COMPILERS),stats.$(c).md5sum)
@@ -318,34 +320,35 @@ remote_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Remote for dir:; git remote -v'
 update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_param
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
-	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; git checkout $(FMS_tag)'
-	cd $(LM3)/land_lad2; git fetch; git checkout $(LM3_tag)
+	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; $(GIT_CHECKOUT) $(FMS_tag)'
+	cd $(LM3)/land_lad2; git fetch; $(GIT_CHECKOUT) $(LM3_tag)
 $(EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
-	git clone $(EXAMPLES_FORK)/MOM6-examples.git $(EXAMPLES)
+	$(GIT_CLONE) $(EXAMPLES_FORK)/MOM6-examples.git $(EXAMPLES)
 	(cd $(EXAMPLES); git submodule init)
-	(cd $(EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/FMS FMS)
-	(cd $(EXAMPLES)/src; git clone --recursive $(MOM6_FORK)/MOM6 MOM6)
-	(cd $(EXAMPLES)/src; git clone $(SIS2_FORK)/SIS2 SIS2)
-	(cd $(EXAMPLES)/src; git clone $(ICEBERGS_FORK)/icebergs icebergs)
-	(cd $(EXAMPLES)/src; git clone $(GITHUB)NOAA-GFDL/coupler coupler)
-	(cd $(EXAMPLES); git submodule update)
-	(cd $(EXAMPLES); git checkout $(EXAMPLES_tag))
-	(cd $(EXAMPLES)/src/MOM6; git checkout $(MOM6_tag))
-	(cd $(EXAMPLES)/src/SIS2; git checkout $(SIS2_tag))
-	(cd $(EXAMPLES)/src/icebergs; git checkout $(ICEBERGS_tag))
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB)NOAA-GFDL/FMS FMS)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) --recursive $(MOM6_FORK)/MOM6 MOM6)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(SIS2_FORK)/SIS2 SIS2)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(ICEBERGS_FORK)/icebergs icebergs)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB)NOAA-GFDL/coupler coupler)
+	(cd $(EXAMPLES); git submodule -q update)
+	(cd $(EXAMPLES); $(GIT_CHECKOUT) $(EXAMPLES_tag))
+	(cd $(EXAMPLES)/src/MOM6; $(GIT_CHECKOUT) $(MOM6_tag))
+	(cd $(EXAMPLES)/src/SIS2; $(GIT_CHECKOUT) $(SIS2_tag))
+	(cd $(EXAMPLES)/src/icebergs; $(GIT_CHECKOUT) $(ICEBERGS_tag))
 $(EXTRAS) $(AM2) $(LM3): | $(EXAMPLES)
 	mkdir -p $@
 $(ICE_PARAM) $(ATMOS_PARAM) $(AM2_REPOS) $(LM3)/land_param: | $(EXTRAS)
-	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/$(@F).git)
-	(cd $@; git checkout $(FMS_tag))
+	(cd $(@D); $(GIT_CLONE) http://gitlab.gfdl.noaa.gov/fms/$(@F).git)
+	(cd $@; $(GIT_CHECKOUT) $(FMS_tag))
 $(SIS1): | $(EXTRAS)
-	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/ice_sis.git $(@F))
-	(cd $@; git checkout $(FMS_tag))
+	(cd $(@D); $(GIT_CLONE) http://gitlab.gfdl.noaa.gov/fms/ice_sis.git $(@F))
+	(cd $@; $(GIT_CHECKOUT) $(FMS_tag))
 $(LM3)/land_param: | $(LM3)
 $(LM3)/land_lad2: | $(LM3)
-	(cd $(@D); git clone http://gitlab.gfdl.noaa.gov/fms/land_lad2.git)
-	(cd $@; git checkout $(LM3_tag))
-	make cppLM3
+	(cd $(@D); $(GIT_CLONE) http://gitlab.gfdl.noaa.gov/fms/land_lad2.git)
+	(cd $@; $(GIT_CHECKOUT) $(LM3_tag))
+	@make -s -n cppLM3
+	@make -s cppLM3 >& /dev/null
 cppLM3: $(LM3_REPOS)
 	find $(LM3)/land_lad2 -type f -name \*.F90 -exec cpp -Duse_libMPI -Duse_netCDF -DSPMD -Duse_LARGEFILE -C -v -I $(FMS)/include -o '{}'.cpp {} \;
 	find $(LM3)/land_lad2 -type f -name \*.F90.cpp -exec rename .F90.cpp .f90 {} \;
@@ -365,9 +368,9 @@ $(DATASETS)/%.tgz: | $(DATASETS)
 	(cd $(@D); wget ftp://ftp.gfdl.noaa.gov/pub/aja/datasets/$(@F))
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:
-	git clone $(GITHUB)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
+	$(GIT_CLONE) $(GITHUB)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
 wiki.MOM6:
-	git clone $(GITHUB)NOAA-GFDL/MOM6.wiki.git wiki.MOM6
+	$(GIT_CLONE) $(GITHUB)NOAA-GFDL/MOM6.wiki.git wiki.MOM6
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory
