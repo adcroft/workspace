@@ -13,7 +13,7 @@ install:
 
 # Test critical targets in the Makefile
 script:
- - make clone_http_minimal
+ - make clone
  - make stats.all.md5sums
  - make test.all.md5sums
 #- make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/shared/repro/libfms.a

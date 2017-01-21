@@ -51,8 +51,9 @@ EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_
 # Experiments to test when using EXAMPLES=ESMG-configs
 ESMG_EXPTS=CCS1
 
-# Protocal for Github
+# Protocols for Github
 GITHUB_URL=https://github.com/# This uses the unauthenticated HTTPS protocol
+GITHUB_SSH=git@github.com:# This uses the authenticated SSH protocol
 # Name of MOM6-examples directory
 EXAMPLES=MOM6-examples
 EXAMPLES_FORK=NOAA-GFDL
@@ -157,6 +158,7 @@ RM=\rm
 SHELL=tcsh
 GIT_CLONE=git clone -q
 GIT_CHECKOUT=git checkout -q
+CURRENT_URL=$(shell git remote -v | grep origin | grep push | awk '{print $$2}')
 
 # The "all" target depends on which set of nodes we are on...
 ifeq ($(findstring $(HOST),$(foreach n,1 2 3 4 5 6 7 8 9,c3-batch$(n))),$(HOST))
@@ -306,34 +308,32 @@ test.%.md5sum: stats.%.md5sum
 	md5sum -c $<
 
 # This section defines how to clone and layout the source code
-clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(EXAMPLES)/.datasets
-clone_minimal: $(MOM6)
-clone_http:
-	make GITHUB_URL="https://github.com/" clone
-clone_http_minimal:
-	make GITHUB_URL="https://github.com/" clone_minimal
-status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
-	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
-	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
-remote_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
-	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Remote for dir:; git remote -v'
-update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_param
-	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
-	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; $(GIT_CHECKOUT) $(FMS_tag)'
-	cd $(LM3)/land_lad2; git fetch; $(GIT_CHECKOUT) $(LM3_tag)
-$(EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
-	$(GIT_CLONE) $(GITHUB_URL)$(EXAMPLES_FORK)/MOM6-examples.git $(EXAMPLES)
-	(cd $(EXAMPLES); git submodule init)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)NOAA-GFDL/FMS FMS)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) --recursive $(GITHUB_URL)$(MOM6_FORK)/MOM6 MOM6)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)$(SIS2_FORK)/SIS2 SIS2)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)$(ICEBERGS_FORK)/icebergs icebergs)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)NOAA-GFDL/coupler coupler)
-	(cd $(EXAMPLES); git submodule -q update)
+clone: $(MOM6)
+clone_dev: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(EXAMPLES)/.datasets
+	@make dev_urls dev_tags
+dev_urls: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
+	(cd $(EXAMPLES); git remote set-url origin $(subst $GITHUB_URL,$GITHUB_SSH,$(CURRENT_URL)))
+	(cd $(MOM6); git remote set-url origin $(subst $GITHUB_URL,$GITHUB_SSH,$(CURRENT_URL)))
+	(cd $(SIS2); git remote set-url origin $(subst $GITHUB_URL,$GITHUB_SSH,$(CURRENT_URL)))
+	(cd $(ICEBERGS); git remote set-url origin $(subst $GITHUB_URL,$GITHUB_SSH,$(CURRENT_URL)))
+dev_tags: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
 	(cd $(EXAMPLES); $(GIT_CHECKOUT) $(EXAMPLES_tag))
 	(cd $(EXAMPLES)/src/MOM6; $(GIT_CHECKOUT) $(MOM6_tag))
 	(cd $(EXAMPLES)/src/SIS2; $(GIT_CHECKOUT) $(SIS2_tag))
 	(cd $(EXAMPLES)/src/icebergs; $(GIT_CHECKOUT) $(ICEBERGS_tag))
+show_remotes: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
+	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Remote for dir:; git remote -v'
+status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
+	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
+	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
+remote_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
+	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Remote for dir:; git remote -v'
+update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_param
+	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
+	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; $(GIT_CHECKOUT) $(FMS_tag)'
+	cd $(LM3)/land_lad2; git fetch; $(GIT_CHECKOUT) $(LM3_tag)
+$(EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
+	$(GIT_CLONE) --recursive $(GITHUB_URL)$(EXAMPLES_FORK)/MOM6-examples.git $(EXAMPLES)
 $(EXTRAS) $(AM2) $(LM3): | $(EXAMPLES)
 	mkdir -p $@
 $(ICE_PARAM) $(ATMOS_PARAM) $(AM2_REPOS) $(LM3)/land_param: | $(EXTRAS)
