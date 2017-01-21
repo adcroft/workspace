@@ -6,7 +6,7 @@ language: c
 
 cache:
   directories:
-    - build
+    - build/gnu
     - src
 
 # Prerequisites for using the Makefile to build MOM6
@@ -20,10 +20,13 @@ install:
 script:
  - make clone
  - make dev_tags
+ # Can comments go here?
+ - touch src/.noop; cp -rp src/* MOM6-examples/src/
  - make dev_pull
+ # Use an empty environment for compilation
+ - touch build/gnu/env
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/shared/repro/libfms.a
  - cp -rp MOM6-examples/src/* src/
-#- cp -rp src/* MOM6-examples/src/
 #- make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/ocean_only/repro/MOM6
 #- make SITE=linux MPIRUN=mpirun NPES=2 MOM6-examples/ocean_only/double_gyre/ocean.stats.gnu
 #- make stats.all.md5sums
