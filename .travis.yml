@@ -4,6 +4,10 @@
 # This is a not a c-language project but it does use "make"
 language: c
 
+cache:
+  directories:
+    - workspace
+
 # Prerequisites for using the Makefile to build MOM6
 install:
  - sudo apt-get install tcsh pkg-config
