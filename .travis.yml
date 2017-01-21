@@ -17,6 +17,7 @@ install:
 
 # Test critical targets in the Makefile
 script:
+ - pwd; ls -R
  - make clone
  - make stats.all.md5sums
  - make test.all.md5sums
