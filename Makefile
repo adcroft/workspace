@@ -52,26 +52,26 @@ EXPT_EXECS=ocean_only symmetric_ocean_only ice_ocean_SIS ice_ocean_SIS2 coupled_
 ESMG_EXPTS=CCS1
 
 # Protocal for Github
-#GITHUB=https://github.com/# This uses the unauthenticated HTTPS protocol
-GITHUB=git@github.com:# This uses the authenticated SSH protocol
+#GITHUB_URL=https://github.com/# This uses the unauthenticated HTTPS protocol
+GITHUB_URL=git@github.com:# This uses the authenticated SSH protocol
 # Name of MOM6-examples directory
 EXAMPLES=MOM6-examples
-EXAMPLES_FORK=$(GITHUB)NOAA-GFDL
+EXAMPLES_FORK=$(GITHUB_URL)NOAA-GFDL
 # Name of FMS/shared directory
 FMS=$(EXAMPLES)/src/FMS
 # Name of MOM6 directory
 MOM6=$(EXAMPLES)/src/MOM6
-MOM6_FORK=$(GITHUB)NOAA-GFDL
+MOM6_FORK=$(GITHUB_URL)NOAA-GFDL
 # Location for extras components
 EXTRAS=$(EXAMPLES)/src
 # Name of SIS1 directory
 SIS1=$(EXTRAS)/SIS
 # Name of SIS2 directory
 SIS2=$(EXAMPLES)/src/SIS2
-SIS2_FORK=$(GITHUB)NOAA-GFDL
+SIS2_FORK=$(GITHUB_URL)NOAA-GFDL
 # Name of icebergs directory
 ICEBERGS=$(EXAMPLES)/src/icebergs
-ICEBERGS_FORK=$(GITHUB)NOAA-GFDL
+ICEBERGS_FORK=$(GITHUB_URL)NOAA-GFDL
 # Name of LM3 directory
 LM3=$(EXTRAS)/LM3
 LM3_REPOS=$(LM3)/land_param $(LM3)/land_lad2
@@ -310,9 +310,9 @@ test.%.md5sum: stats.%.md5sum
 clone: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(LM3_REPOS) $(AM2_REPOS) $(EXAMPLES)/.datasets
 clone_minimal: $(MOM6)
 clone_http:
-	make GITHUB="https://github.com/" clone
+	make GITHUB_URL="https://github.com/" clone
 clone_http_minimal:
-	make GITHUB="https://github.com/" clone_minimal
+	make GITHUB_URL="https://github.com/" clone_minimal
 status_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3_REPOS)
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; git fetch'
 	echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Status in dir; git status'
@@ -325,11 +325,11 @@ update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_para
 $(EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
 	$(GIT_CLONE) $(EXAMPLES_FORK)/MOM6-examples.git $(EXAMPLES)
 	(cd $(EXAMPLES); git submodule init)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB)NOAA-GFDL/FMS FMS)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)NOAA-GFDL/FMS FMS)
 	(cd $(EXAMPLES)/src; $(GIT_CLONE) --recursive $(MOM6_FORK)/MOM6 MOM6)
 	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(SIS2_FORK)/SIS2 SIS2)
 	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(ICEBERGS_FORK)/icebergs icebergs)
-	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB)NOAA-GFDL/coupler coupler)
+	(cd $(EXAMPLES)/src; $(GIT_CLONE) $(GITHUB_URL)NOAA-GFDL/coupler coupler)
 	(cd $(EXAMPLES); git submodule -q update)
 	(cd $(EXAMPLES); $(GIT_CHECKOUT) $(EXAMPLES_tag))
 	(cd $(EXAMPLES)/src/MOM6; $(GIT_CHECKOUT) $(MOM6_tag))
@@ -368,9 +368,9 @@ $(DATASETS)/%.tgz: | $(DATASETS)
 	(cd $(@D); wget ftp://ftp.gfdl.noaa.gov/pub/aja/datasets/$(@F))
 wiki: wiki.MOM6-examples wiki.MOM6
 wiki.MOM6-examples:
-	$(GIT_CLONE) $(GITHUB)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
+	$(GIT_CLONE) $(GITHUB_URL)NOAA-GFDL/MOM6-examples.wiki.git wiki.MOM6-examples
 wiki.MOM6:
-	$(GIT_CLONE) $(GITHUB)NOAA-GFDL/MOM6.wiki.git wiki.MOM6
+	$(GIT_CLONE) $(GITHUB_URL)NOAA-GFDL/MOM6.wiki.git wiki.MOM6
 
 # Rules for building executables ###############################################
 # Choose the compiler based on the build directory
