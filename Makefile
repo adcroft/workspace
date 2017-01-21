@@ -472,6 +472,9 @@ $(BUILD_DIR)/cray/env:
 $(BUILD_DIR)/gnu/env:
 	mkdir -p $(dir $@)
 	@echo Building $@
+ifeq ($(SITE),linux)
+	@echo > $@
+else
 	@echo module unload PrgEnv-pgi > $@
 	@echo module unload PrgEnv-pathscale >> $@
 	@echo module unload PrgEnv-intel >> $@
@@ -481,6 +484,7 @@ $(BUILD_DIR)/gnu/env:
 	@echo module load PrgEnv-gnu >> $@
 	@echo module unload netcdf >> $@
 	@echo module load cray-netcdf >> $@
+endif
 
 # Canned rule to run all executables
 define build_mom6_executable
