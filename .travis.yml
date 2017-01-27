@@ -6,8 +6,7 @@ language: c
 
 cache:
   directories:
-    - build/gnu
-    - src
+    - my_cache
 
 # Prerequisites for using the Makefile to build MOM6
 install:
@@ -18,21 +17,23 @@ install:
 
 # Test critical targets in the Makefile
 script:
- - find . -type d
+ - ls -Rl
  - make clone
  - make dev_tags
- - find . -type d
- # Make sure there is something to copy from src/
- - touch src/noop
- # Copy cached src code (preserving dates)
- - cp -rp src/* MOM6-examples/src/
+ - ls -l
+ # Extract cached src code (preserving dates)
+ - tar zvxf my_cache/src.tgz
  # Pull latest source code
  - make dev_pull
+ # Cache source code
+ - tar zcvf my_cache/src.tgz MOM6-examples/src/*
+ # Extract cached build
+ - tar zvxf my_cache/build.tgz
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/shared/repro/libfms.a
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/ocean_only/repro/MOM6
- # Cache source code
- - cp -rp MOM6-examples/src/* src/
- - find . -type d
+ # Cache build
+ - tar zcvf my_cache/build.tgz build
+ - ls -l my_cache
  - make SITE=linux MPIRUN=mpirun NPES=2 MOM6-examples/ocean_only/double_gyre/ocean.stats.gnu
 #- make stats.all.md5sums
 #- make test.all.md5sums
