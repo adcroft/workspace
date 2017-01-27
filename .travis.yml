@@ -19,7 +19,7 @@ install:
 script:
  - ls -Rl
  # Extract cached src code (preserving dates)
- - test -f my_cache/M6E.tgz && tar zvxf my_cache/M6E.tgz
+ - test -f my_cache/M6E.tgz && tar zvxf my_cache/M6E.tgz || echo No M6E cache
  # Clone if cache was missing
  - make clone
  - make dev_tags
@@ -29,7 +29,7 @@ script:
  # Cache source code
  - tar zcvf my_cache/M6E.tgz MOM6-examples
  # Extract cached build
- - test -f my_cache/build.tgz && tar zvxf my_cache/build.tgz
+ - test -f my_cache/build.tgz && tar zvxf my_cache/build.tgz || echo No build cache
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/shared/repro/libfms.a
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/ocean_only/repro/MOM6
  # Cache build
