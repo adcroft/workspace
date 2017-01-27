@@ -18,17 +18,18 @@ install:
 # Test critical targets in the Makefile
 script:
  - ls -Rl
+ # Extract cached src code (preserving dates)
+ - test -f my_cache/M6E.tgz && tar zvxf my_cache/M6E.tgz
+ # Clone if cache was missing
  - make clone
  - make dev_tags
  - ls -l
- # Extract cached src code (preserving dates)
- - tar zvxf my_cache/src.tgz
  # Pull latest source code
  - make dev_pull
  # Cache source code
- - tar zcvf my_cache/src.tgz MOM6-examples/src/*
+ - tar zcvf my_cache/M6E.tgz MOM6-examples
  # Extract cached build
- - tar zvxf my_cache/build.tgz
+ - test -f my_cache/build.tgz && tar zvxf my_cache/build.tgz
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/shared/repro/libfms.a
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/ocean_only/repro/MOM6
  # Cache build
