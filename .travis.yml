@@ -18,8 +18,10 @@ install:
 
 # Test critical targets in the Makefile
 script:
+ - find . -type d
  - make clone
  - make dev_tags
+ - find . -type d
  # Make sure there is something to copy from src/
  - touch src/noop
  # Copy cached src code (preserving dates)
@@ -30,6 +32,7 @@ script:
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 MOM6-examples/build/gnu/ocean_only/repro/MOM6
  # Cache source code
  - cp -rp MOM6-examples/src/* src/
+ - find . -type d
  - make SITE=linux MPIRUN=mpirun NPES=2 MOM6-examples/ocean_only/double_gyre/ocean.stats.gnu
 #- make stats.all.md5sums
 #- make test.all.md5sums
