@@ -31,7 +31,7 @@ SOLO_EXPTS=$(foreach dir, \
 #         ISOMIP/layer
 
 #ALE_EXPTS+=ocean_only/global_ALE/z0 ocean_only/global_ALE/z1
-#ALE_EXPTS+=ocean_only/tracer_mixing/z ocean_only/tracer_mixing/rho
+ALE_EXPTS+=ocean_only/tracer_mixing/z ocean_only/tracer_mixing/rho
 #SOLO_EXPTS+=ocean_only/MESO_025_63L
 #SOLO_EXPTS+=ocean_only/tracer_mixing/layer
 SYMMETRIC_EXPTS=ocean_only/circle_obcs
