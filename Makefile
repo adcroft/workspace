@@ -21,6 +21,7 @@ ALE_EXPTS=$(foreach dir, \
 #         ISOMIP/rho ISOMIP/z
 
 SOLO_EXPTS=$(foreach dir, \
+          unit_tests \
           resting/layer \
           CVmix_SCM_tests/mech_only/BML CVmix_SCM_tests/wind_only/BML \
           CVmix_SCM_tests/skin_warming_wind/BML CVmix_SCM_tests/cooling_only/BML \
@@ -626,7 +627,7 @@ $(foreach dir,$(BGC_SIS2_EXPTS),$(EXAMPLES)/$(dir)/$(TIMESTATS).cray): $(BUILD_D
 $(foreach dir,$(ESMG_EXPTS),$(EXAMPLES)/$(dir)/$(TIMESTATS).cray): $(BUILD_DIR)/cray/ice_ocean_SIS2/$(EXEC_MODE)/MOM6
 
 # Rules for configuring and running experiments ################################
-$(foreach cmp,$(COMPILERS),$(EXAMPLES)/ocean_only/unit_tests/$(TIMESTATS).$(cmp)): NPES=2
+$(foreach cmp,$(COMPILERS),$(EXAMPLES)/ocean_only/unit_tests/$(TIMESTATS).$(cmp)): NPES=1
 $(foreach cmp,$(COMPILERS),$(EXAMPLES)/ocean_only/unit_tests/$(TIMESTATS).$(cmp)): $(foreach fl,input.nml MOM_input MOM_override,$(EXAMPLES)/ocean_only/unit_tests/$(fl))
 
 $(foreach cmp,$(COMPILERS),$(EXAMPLES)/ocean_only/torus_advection_test/$(TIMESTATS).$(cmp)): NPES=2
