@@ -19,14 +19,18 @@ To clone code and tools (from within the `workspace` directory):
 ```bash
 make clone
 ```
+or if you are inside GFDL's firewall you can
+```bash
+make clone_dev
+```
 
 ## Compilation
 
 To compile all executables (from within the `workspace` directory):
 ```bash
-make gnu
-make intel
-make pgi
+make gnu -j
+make intel -j
+make pgi -j
 ```
 
 To compile a specific executable (from within the `workspace` directory): 
