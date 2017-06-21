@@ -58,7 +58,7 @@ GITHUB_SSH=git@github.com:# This uses the authenticated SSH protocol
 # Name of MOM6-examples directory
 REGRESSIONS=Gaea_c3-stats-MOM6-examples
 REGRESSIONS_DIR=$(REGRESSIONS)/regressions
-GITLAB_URL=git@gitlab.gfdl.noaa.gov:
+REGRESSIONS_URL=git@gitlab.gfdl.noaa.gov:Gaea_c3-stats-MOM6-examples.git
 # Name of MOM6-examples directory
 EXAMPLES=$(REGRESSIONS)/MOM6-examples
 EXAMPLES_FORK=NOAA-GFDL
@@ -342,6 +342,7 @@ dev_tags: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
 	(cd $(EXAMPLES)/src/SIS2; $(GIT_CHECKOUT) $(SIS2_tag))
 	(cd $(EXAMPLES)/src/icebergs; $(GIT_CHECKOUT) $(ICEBERGS_tag))
 dev_pull:
+	(cd $(REGRESSIONS); git checkout; git pull)
 	(cd $(EXAMPLES); git checkout; git pull)
 	(cd $(MOM6); git checkout; git pull)
 	(cd $(SIS2); git checkout; git pull)
@@ -358,7 +359,7 @@ update_extras: $(ICE_PARAM) $(ATMOS_PARAM) $(SIS1) $(AM2_REPOS) $(LM3)/land_para
 	@echo $^ | tr ' ' '\n' | xargs -I dir sh -c 'cd dir; echo Updating dir; $(GIT_CHECKOUT) $(FMS_tag)'
 	cd $(LM3)/land_lad2; git fetch; $(GIT_CHECKOUT) $(LM3_tag)
 $(REGRESSIONS) $(EXAMPLES) $(FMS) $(MOM6) $(SIS2) $(ICEBERGS) $(COUPLER) $(ATMOS_NULL) $(LAND_NULL) $(MKMF_DIR):
-	$(GIT_CLONE) --recursive $(GITLAB_URL)ogrp/$(REGRESSIONS).git $(REGRESSIONS)
+	$(GIT_CLONE) --recursive $(REGRESSIONS_URL) $(REGRESSIONS)
 $(EXTRAS) $(AM2) $(LM3): | $(EXAMPLES)
 	mkdir -p $@
 $(ICE_PARAM) $(ATMOS_PARAM) $(AM2_REPOS) $(LM3)/land_param: | $(EXTRAS)
