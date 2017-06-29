@@ -4,10 +4,6 @@
 # This is a not a c-language project but it does use "make"
 language: c
 
-cache:
-  directories:
-    - my_cache
-
 # Prerequisites for using the Makefile to build MOM6
 install:
  - sudo apt-get install tcsh pkg-config
@@ -19,20 +15,12 @@ install:
 script:
  # Clone if cache was missing
  - make clone REGRESSIONS_URL=https://github.com/adcroft/Gaea-stats-MOM6-examples.git
- # Extract cached src code (preserving dates)
- - test -f my_cache/M6E.tgz && tar zxf my_cache/M6E.tgz || echo No M6E cache
  # Test changing to dev branchs
  - make dev_tags
  # Pull latest source code
  - make dev_pull
- # Cache source code
- - tar zcf my_cache/M6E.tgz Gaea_c3-stats-MOM6-examples/MOM6-examples/src
  # Extract cached build
- - test -f my_cache/build.tgz && tar zxf my_cache/build.tgz || echo No build cache
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/shared/repro/libfms.a
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/ocean_only/repro/MOM6
  # Cache build
- - tar zcf my_cache/build.tgz build
  - make SITE=linux BUILD_DIR=build MPIRUN=mpirun NPES=2 Gaea_c3-stats-MOM6-examples/MOM6-examples/ocean_only/double_gyre/ocean.stats.gnu
-#- make stats.all.md5sums
-#- make test.all.md5sums
