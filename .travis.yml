@@ -25,10 +25,8 @@ script:
  - make dev_tags
  # Pull latest source code
  - make dev_pull
- # Cleanup before caching
- - (cd Gaea_c3-stats-MOM6-examples/MOM6-examples; git checkout .)
  # Cache source code
- - tar zcf my_cache/M6E.tgz Gaea_c3-stats-MOM6-examples/MOM6-examples
+ - tar zcf my_cache/M6E.tgz Gaea_c3-stats-MOM6-examples/MOM6-examples/src
  # Extract cached build
  - test -f my_cache/build.tgz && tar zxf my_cache/build.tgz || echo No build cache
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/shared/repro/libfms.a
