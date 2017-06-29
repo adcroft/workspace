@@ -25,6 +25,8 @@ script:
  - make dev_tags
  # Pull latest source code
  - make dev_pull
+ # Cleanup before caching
+ - (cd Gaea_c3-stats-MOM6-examples/MOM6-examples; git checkout .)
  # Cache source code
  - tar zcf my_cache/M6E.tgz Gaea_c3-stats-MOM6-examples/MOM6-examples
  # Extract cached build
