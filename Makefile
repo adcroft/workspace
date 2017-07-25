@@ -56,7 +56,7 @@ ESMG_EXPTS=CCS1
 GITHUB_URL=https://github.com/# This uses the unauthenticated HTTPS protocol
 GITHUB_SSH=git@github.com:# This uses the authenticated SSH protocol
 # Name of MOM6-examples directory
-REGRESSIONS=Gaea_c3-stats-MOM6-examples
+REGRESSIONS=Gaea-stats-MOM6-examples
 REGRESSIONS_DIR=$(REGRESSIONS)/regressions
 REGRESSIONS_URL=git@gitlab.gfdl.noaa.gov:Gaea_c3-stats-MOM6-examples.git
 # Name of MOM6-examples directory
