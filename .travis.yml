@@ -23,4 +23,4 @@ script:
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/shared/repro/libfms.a
  - make SITE=linux FC=mpif77 CC=mpicc LD=mpif77 BUILD_DIR=build REL_PATH=../../../.. build/gnu/ocean_only/repro/MOM6
  # Cache build
- - make SITE=linux BUILD_DIR=build MPIRUN=mpirun NPES=2 Gaea-c3-stats-MOM6-examples/MOM6-examples/ocean_only/double_gyre/ocean.stats.gnu
+ - make SITE=linux BUILD_DIR=build MPIRUN=mpirun NPES=2 Gaea-stats-MOM6-examples/MOM6-examples/ocean_only/double_gyre/ocean.stats.gnu
