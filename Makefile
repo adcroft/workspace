@@ -344,7 +344,7 @@ dev_tags: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
 dev_pull:
 	(cd $(REGRESSIONS); git checkout; git pull)
 	(cd $(EXAMPLES); git checkout; git pull)
-	(cd $(MOM6); git checkout; git pull)
+	(cd $(MOM6); git checkout; git pull; git submodule init; git submodule update)
 	(cd $(SIS2); git checkout; git pull)
 	(cd $(ICEBERGS); git checkout; git pull)
 show_remotes: $(EXAMPLES) $(MOM6) $(SIS2) $(ICEBERGS)
