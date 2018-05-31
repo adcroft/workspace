@@ -3,13 +3,15 @@
 
 # This is a not a c-language project but it does use "make"
 language: c
+dist: trusty
+sudo: false
 
-# Prerequisites for using the Makefile to build MOM6
-install:
- - sudo apt-get install tcsh pkg-config
- - sudo apt-get install gfortran
- - sudo apt-get install netcdf-bin libnetcdf-dev
- - sudo apt-get install openmpi-bin libopenmpi-dev
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - tcsh pkg-config netcdf-bin libnetcdf-dev openmpi-bin libopenmpi-dev gfortran
 
 # Test critical targets in the Makefile
 script:
